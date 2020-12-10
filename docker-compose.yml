@@ -1,0 +1,150 @@
+version: "3"
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    ports:
+      - 9870:9870
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - "C:\\Users\\yinzi\\Desktop\\big-data-platform\\share:/root/share"
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop.env
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
+    ports: 
+      - 9864:9864
+    volumes:
+      - hadoop_datanode1:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    ports: 
+      - 9865:9864
+    volumes:
+      - hadoop_datanode2:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode3
+    ports: 
+      - 9866:9864
+    volumes:
+      - hadoop_datanode3:/hadoop/dfs/data
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    ports: 
+      - 8088:8088
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager1
+    ports: 
+      - 8042:8042
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+
+  nodemanager2:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager2
+    ports: 
+      - 8043:8043
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+
+  nodemanager3:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager3
+    ports: 
+      - 8044:8044
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: historyserver
+    ports: 
+      - 8188:8188
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864 resourcemanager:8088"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop.env
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+
+  my-spark:
+    image: my-ubuntu:spark
+    environment:
+        HADOOP_CONF_DIR: "/etc/hadoop"
+    volumes:
+      - "C:\\Users\\yinzi\\Desktop\\big-data-platform\\share:/root/share"
+      - "C:\\Users\\yinzi\\Desktop\\big-data-platform\\share\\hadoop:/etc/hadoop"
+    tty: true
+
+volumes:
+  hadoop_namenode:
+  hadoop_datanode1:
+  hadoop_datanode2:
+  hadoop_datanode3:
+  hadoop_historyserver:
