@@ -134,7 +134,7 @@ services:
       - datanode3
 
   my-spark:
-    image: my-ubuntu:spark
+    image: my-ubuntu:spark3.0-hdfs
     environment:
         HADOOP_CONF_DIR: "/etc/hadoop"
     volumes:

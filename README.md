@@ -15,5 +15,5 @@ docker-compose up -d
 关闭命令：
 ```
 docker-compose down --remove-orphans
-docker volume rm docker-hadoop_hadoop_datanode1 docker-hadoop_hadoop_datanode2 docker-hadoop_hadoop_datanode3 docker-hadoop_hadoop_historyserver docker-hadoop_hadoop_namenode
+docker volume rm big-data-platform_hadoop_datanode1 big-data-platform_hadoop_datanode2 big-data-platform_hadoop_datanode3 big-data-platform_hadoop_historyserver big-data-platform_hadoop_namenode
 ```
