@@ -52,11 +52,9 @@ export default {
   methods: {
     handleSubmit(e) {
       e.preventDefault();
-      let _this = this;
       this.form.validateFields((err, values) => {
         if (!err) {
           console.log('Received values of form: ', values);
-          let username = values.userName;
           this.$axios({
             method: 'post',
             url: '/login/',
@@ -64,18 +62,18 @@ export default {
               "username": values.userName,
               "password": values.password
             }
-          }).then(function (response) {
+          }).then((response) => {
             console.log(response.data)
             if (response.data.status == 0) {
-              _this.$message.error('用户名不存在！');
+              this.$message.error('用户名不存在！');
             } else if (response.data.status == 1) {
-              _this.$cookies.set("username", username);
-              _this.$message.success('登录成功！');
-              _this.$router.push("/dashboard")
+              this.$cookies.set("username", values.userName);
+              this.$message.success('登录成功！');
+              this.$router.push("/dashboard")
             } else if (response.data.status == 2) {
-              _this.$message.error('密码错误！');
+              this.$message.error('密码错误！');
             } else {
-              _this.$message.error('非法状态！');
+              this.$message.error('非法状态！');
             }
           })
         }
