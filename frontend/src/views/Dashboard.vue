@@ -5,13 +5,14 @@
       <a-menu
         theme="dark"
         mode="horizontal"
-        :default-selected-keys="['workspace']"
+        :default-selected-keys="['1']"
+        :selectedKeys="selected_keys"
         :style="{ lineHeight: '64px' }"
       >
-        <a-menu-item key="workspace" @click="clickWorkspace">
+        <a-menu-item key="1" @click="clickWorkspace">
           工作台
         </a-menu-item>
-        <a-menu-item key="help" @click="clickHelp">
+        <a-menu-item key="2" @click="clickHelp">
           使用帮助
         </a-menu-item>
         <a-popover
@@ -61,7 +62,9 @@
               </a-form>
             </a-modal>
           </a-card>
-          <a-button class="avatar" type="primary" shape="circle" icon="user" />
+          <a-button class="avatar" type="primary" shape="circle" size="large">
+            <a-icon type="user" style="font-size:24px;"/>
+          </a-button>
         </a-popover>
       </a-menu>
     </a-layout-header>
@@ -75,25 +78,42 @@ export default {
   data() {
     return {
       form: this.$form.createForm(this, { name: 'coordinated' }),
+      selected_keys: ["1"],
       popover_visible: false,
       modal_visible: false,
       username: "null",
       user_role: "普通用户"
     };
   },
+  created() {
+    console.log(this.$route.path);
+    var patt_workspace = new RegExp("/dashboard/workspace");
+    var patt_help = new RegExp("/dashboard/help");
+    if (patt_workspace.test(this.$route.path)) {
+      console.log("匹配到 workspace");
+      this.selected_keys = ["1"]
+    } else if (patt_help.test(this.$route.path)) {
+      console.log("匹配到 help");
+      this.selected_keys = ["2"];
+    } else {
+      console.log("啥也没匹配到");
+    }
+  },
   methods: {
     // 点击 "工作台"
     clickWorkspace(e) {
       console.log(e.key);
-      this.$router.push("/dashboard/workspace")
+      this.selected_keys = ["1"]
+      this.$router.push("/dashboard/workspace/projects")
     },
 
     // 点击 "使用帮助"
     clickHelp(e) {
       console.log(e.key);
-      this.$router.push("/dashboard/help")
+      this.selected_keys = ["2"];
+      this.$router.push("/dashboard/help");
     },
-    
+
     // 点击用户头像
     clickAvatar(popover_visible) {
       if (popover_visible == true) {
@@ -196,7 +216,7 @@ export default {
 }
 
 .avatar {
-  margin-top: 16px;
+  margin-top: 13px;
   float: right;
 }
 </style>

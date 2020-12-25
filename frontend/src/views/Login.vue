@@ -46,7 +46,7 @@ export default {
     
     // 如果 cookie 已存在，证明已经登录，则直接进入 dashboard
     if (this.$cookies.get("username") != null) {
-      this.$router.replace("/dashboard/workspace")
+      this.$router.replace("/dashboard/workspace/projects")
     }
   },
   methods: {
@@ -69,7 +69,7 @@ export default {
             } else if (response.data.status == 1) {
               this.$cookies.set("username", values.userName);
               this.$message.success('登录成功！');
-              this.$router.replace("/dashboard/workspace")
+              this.$router.replace("/dashboard/workspace/projects")
             } else if (response.data.status == 2) {
               this.$message.error('密码错误！');
             } else {

@@ -23,6 +23,11 @@ import 'ant-design-vue/dist/antd.css';
 Vue.prototype.$message = message;
 Vue.use(Antd)
 
+// mavon-editor
+import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
+Vue.use(mavonEditor)
+
 new Vue({
   router,
   render: h => h(App),
