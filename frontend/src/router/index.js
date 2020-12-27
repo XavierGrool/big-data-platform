@@ -7,6 +7,9 @@ import Projects from '../components/Projects.vue'
 import Users from '../components/Users.vue'
 import Project from '../components/Project.vue'
 import Help from '../components/Help.vue'
+import Dataset from '../components/Dataset.vue'
+import Model from '../components/Model.vue'
+import Prediction from '../components/Prediction.vue'
 // import Test from '../views/Test.vue'
 
 Vue.use(VueRouter)
@@ -33,8 +36,22 @@ const routes = [
             component: Users
           },
           {
-            path: 'project',
-            component: Project
+            path: 'project/:id',
+            component: Project,
+            children: [
+              {
+                path: 'dataset',
+                component: Dataset
+              },
+              {
+                path: 'model',
+                component: Model
+              },
+              {
+                path: 'prediction',
+                component: Prediction
+              },
+            ]
           }
         ]
       },

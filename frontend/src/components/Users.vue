@@ -16,9 +16,8 @@
     </a-layout-sider>
     <a-layout style="padding: 0 24px 24px">
     <a-breadcrumb style="margin: 16px 0">
-        <a-breadcrumb-item>Home</a-breadcrumb-item>
-        <a-breadcrumb-item>List</a-breadcrumb-item>
-        <a-breadcrumb-item>App</a-breadcrumb-item>
+        <a-breadcrumb-item>Workspace</a-breadcrumb-item>
+        <a-breadcrumb-item>User Manage</a-breadcrumb-item>
     </a-breadcrumb>
     <a-layout-content
         :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
@@ -262,7 +261,7 @@ export default {
                     console.log('Received values of form: ', values);
                     // 先判断一下两次密码一不一致
                     // 如果如果不一致，弹警告
-                    // 一致的话，调用 /user/add 接口 (POST)
+                    // 一致的话，调用 /user/add/ 接口 (POST)
                     // 发送 username, passwd, permission
                     if (values.passwd != values.confirm_passwd) {
                         this.$message.error('两次密码输入不一致！');
@@ -288,7 +287,6 @@ export default {
                             } else {
                                 this.$message.error('非法状态！');
                             }
-
                         })
                     }
                 }
