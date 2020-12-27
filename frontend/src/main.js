@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import App from './App.vue'
 
+Vue.config.productionTip = false
+
 // vue-router
 import router from './router'
 
@@ -18,10 +20,13 @@ Vue.$cookies.config('30d')
 import Antd from 'ant-design-vue';
 import message from 'ant-design-vue';
 import 'ant-design-vue/dist/antd.css';
-Vue.use(Antd)
 Vue.prototype.$message = message;
+Vue.use(Antd)
 
-Vue.config.productionTip = false
+// mavon-editor
+import mavonEditor from 'mavon-editor'
+import 'mavon-editor/dist/css/index.css'
+Vue.use(mavonEditor)
 
 new Vue({
   router,
