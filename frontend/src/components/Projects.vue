@@ -23,7 +23,7 @@
         :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
     >
         <a-space style="margin-bottom: 12px">
-            <a-button @click="addProject"><a-icon type="file-add" />添加</a-button>
+            <a-button @click="addProject"><a-icon type="file-add" />添加项目</a-button>
             <a-button @click="deleteSelected" type="danger"><a-icon type="delete" />删除</a-button>
         </a-space>
         <a-modal
@@ -209,6 +209,7 @@ export default {
         // 删除选中的项目
         deleteSelected() {
             console.log("删除一堆");
+            // TODO
         },
 
         // 关闭添加项目对话框
@@ -289,6 +290,7 @@ export default {
         deleteOne(key) {
             console.log("要删除的项目是:");
             console.log(key);
+            // TODO
             // this.$axios({
             //     method: 'post',
             //     url: '/user/delete/one/',
