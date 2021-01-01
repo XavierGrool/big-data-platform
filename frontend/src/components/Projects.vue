@@ -57,6 +57,7 @@
             :columns="columns"
             :data-source="data"
             :pagination="pagination"
+            :loading="table_loading"
             :row-selection="rowSelection"
             @change="handleTableChange"
         >
@@ -126,27 +127,6 @@ const columns = [
     },
 ];
 
-const test_data = [
-    {
-        id: 1,
-        key: '1',
-        name: '鸢尾花',
-        description: '分类算法测试'
-    },
-    {
-        id: 2,
-        key: '2',
-        name: '波士顿房价',
-        description: '回归算法测试'
-    },
-    {
-        id: 3,
-        key: '3',
-        name: '手写数字',
-        description: '随机森林算法测试'
-    },
-];
-
 export default {
     name: "Projects",
     data() {
@@ -166,14 +146,16 @@ export default {
                     this.selected_row_keys = selectedRowKeys;
                 }
             },
-            data: test_data,
+            data: [],
             columns,
             tmp_name: "",
-            tmp_description: ""
+            tmp_description: "",
+            table_loading: false
         }
     },
     beforeCreate() {
-        console.log("现在打开的是项目管理页")
+        console.log("现在打开的是项目管理页");
+        this.table_loading = true;
         this.$axios({
             method: 'post',
             url: '/project/get-all/',
@@ -186,6 +168,7 @@ export default {
             console.log(response.data);
             this.data = response.data.projects;
             this.pagination.total = response.data.total;
+            this.table_loading = false;
         })
     },
     methods: {
