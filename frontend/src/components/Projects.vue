@@ -153,7 +153,7 @@ export default {
             table_loading: false
         }
     },
-    beforeCreate() {
+    created() {
         console.log("现在打开的是项目管理页");
         this.table_loading = true;
         this.$axios({
@@ -243,6 +243,7 @@ export default {
         handleTableChange(pagination) {
             console.log("分页发生了变化！")
             console.log(pagination);
+            this.table_loading = true;
             this.pagination.current = pagination.current;
             this.$axios({
                 method: 'post',
@@ -256,6 +257,7 @@ export default {
                 console.log(response.data);
                 this.data = response.data.projects;
                 this.pagination.total = response.data.total;
+                this.table_loading = false;
             })
         },
 

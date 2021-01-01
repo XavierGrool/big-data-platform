@@ -6,6 +6,7 @@
         <a-breadcrumb-item>{{ project_name }}</a-breadcrumb-item>
         <a-breadcrumb-item>Dataset</a-breadcrumb-item>
     </a-breadcrumb>
+    
     <a-layout-content
         :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
     >
@@ -20,6 +21,7 @@
             :footer="null"
             @cancel="closeAddDatasetModal"
         >
+            <a-spin :spinning="spinning" tip="上传中...">
             <a-form-model
                 ref="addDatasetForm"
                 :model="add_dataset_form"
@@ -95,12 +97,14 @@
                     <a-button type="primary" @click="submitAddDataset">提交</a-button>
                 </a-form-model-item>
             </a-form-model>
+            </a-spin>
         </a-modal>
         <a-table
             :columns="columns"
             :data-source="data"
             :pagination="pagination"
             :row-selection="rowSelection"
+            :loading="table_loading"
             @change="handleTableChange"
         >
             <a @click="() => enterDataset(record.key)"
@@ -121,6 +125,7 @@
             </span>
         </a-table>
     </a-layout-content>
+    
 </a-layout>
 </template>
 
@@ -143,34 +148,13 @@ const columns = [
     },
 ];
 
-const test_data = [
-    {
-        id: 1,
-        key: '1',
-        name: 'Iris',
-        description: 'class ~ sepal length + sepal width + petal length + petal width'
-    },
-    {
-        id: 2,
-        key: '2',
-        name: 'Caesarian',
-        description: 'caesarian ~ age + delivery number + delivery time + blood of pressure + heart problem'
-    },
-    {
-        id: 3,
-        key: '3',
-        name: 'Haberman\'s Survival',
-        description: 'Survival status ~ age + year of operation + number of positive axillary nodes'
-    },
-];
-
 export default {
     name: "Dataset",
     data() {
         return {
             project_name: "",
             columns: columns,
-            data: test_data,
+            data: [],
             selected_row_keys: {},
             pagination: {
                 current: 1,
@@ -201,19 +185,40 @@ export default {
                 ],
             },
             formItemLayoutWithOutLabel: { wrapperCol: { span: 14, offset: 5 } },
+            spinning: false,
+            table_loading: false
         }
     },
-    beforeCreate() {
-        console.log(this.$route.params.id)
+    created() {
+        console.log(this.$route.params.project_id)
+        this.table_loading = true;
+
+        // 获取项目名称
         this.$axios({
             method: 'post',
             url: '/project/get-name/',
             data: {
-                "id": Number(this.$route.params.id)
+                "id": Number(this.$route.params.project_id)
             }
         }).then((response) => {
             console.log(response.data);
             this.project_name = response.data.name;
+        })
+
+        // 获取所有数据集
+        this.$axios({
+            method: 'post',
+            url: '/dataset/get-all/',
+            data: {
+              "project_id": Number(this.$route.params.project_id),
+              "num": 5,
+              "start": 1
+            }
+        }).then((response) => {
+            console.log(response.data);
+            this.data = response.data.datasets;
+            this.pagination.total = response.data.total;
+            this.table_loading = false;
         })
     },
     methods: {
@@ -257,13 +262,17 @@ export default {
 
         // 提交添加数据集
         submitAddDataset() {
+            
             this.$refs.addDatasetForm.validate(valid => {
                 if (valid) {
                     console.log('Received values of form: ');
-                    console.log(this.add_dataset_form)
+                    console.log(this.add_dataset_form);
+                    
+                    this.spinning = true;
+                    
                     const formData = new FormData();
                     formData.append("username", this.$cookies.get("username"));
-                    formData.append("project_id", Number(this.$route.params.id));
+                    formData.append("project_id", Number(this.$route.params.project_id));
                     formData.append("name", this.add_dataset_form.name);
                     formData.append("description", this.add_dataset_form.description);
                     formData.append("separator", this.add_dataset_form.separator);
@@ -275,6 +284,15 @@ export default {
                         data: formData
                     }).then((response) => {
                         console.log(response.data);
+                        this.spinning = false;
+                        if (response.data.status == 0) {
+                            this.$message.error('添加数据集失败！');
+                        } else if (response.data.status == 1) {
+                            this.$message.success('添加成功！');
+                            this.$router.go(0);
+                        } else {
+                            this.$message.error('非法状态！');
+                        }
                     })
                 } else {
                     console.log('error submit!!');
@@ -313,8 +331,7 @@ export default {
         enterDataset(key) {
             console.log("数据集的 key 是:");
             console.log(key);
-            // TODO
-            // this.$router.push("/dashboard/workspace/project/" + String(this.data[Number(key) - 1].id) + "/dataset")
+            this.$router.push("/dashboard/workspace/project/" + this.$route.params.project_id + "/dataset/" + String(this.data[Number(key) - 1].id))
         },
 
         // 点击修改数据集
