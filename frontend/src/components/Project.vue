@@ -63,7 +63,7 @@ export default {
         clickDataset(e) {
             console.log(e.key);
             this.selected_keys = ["1"]
-            this.$router.push("/dashboard/workspace/project/" + this.$route.params.id + "/dataset")
+            this.$router.push("/dashboard/workspace/project/" + this.$route.params.project_id + "/dataset")
         },
 
         // 点击 "模型管理"
@@ -71,14 +71,14 @@ export default {
             console.log(e.key);
             this.selected_keys = ["2"]
             console.log(this.$route.params)
-            this.$router.push("/dashboard/workspace/project/" + this.$route.params.id + "/model")
+            this.$router.push("/dashboard/workspace/project/" + this.$route.params.project_id + "/model")
         },
 
         // 点击 "预测分析"
         clickPrediction(e) {
             console.log(e.key);
             this.selected_keys = ["3"]
-            this.$router.push("/dashboard/workspace/project/" + this.$route.params.id + "/prediction")
+            this.$router.push("/dashboard/workspace/project/" + this.$route.params.project_id + "/prediction")
         },
     }
 }

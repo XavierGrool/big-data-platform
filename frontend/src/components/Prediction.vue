@@ -23,12 +23,12 @@ export default {
         }
     },
     beforeCreate() {
-        console.log(this.$route.params.id)
+        console.log(this.$route.params.project_id)
         this.$axios({
             method: 'post',
             url: '/project/get-name/',
             data: {
-                "id": Number(this.$route.params.id)
+                "id": Number(this.$route.params.project_id)
             }
         }).then((response) => {
             console.log(response.data);
