@@ -44,7 +44,13 @@ def create_app(test_config=None):
     from . import user
     app.register_blueprint(user.bp)
 
+    from . import project
+    app.register_blueprint(project.bp)
+
     from . import help
     app.register_blueprint(help.bp)
+
+    from . import dataset
+    app.register_blueprint(dataset.bp)
 
     return app
