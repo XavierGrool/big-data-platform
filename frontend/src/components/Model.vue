@@ -22,10 +22,10 @@
             @change="handleTableChange"
         >
             <span slot="action" slot-scope="record">
-                <a @click="() => modifyDataset(record.key)">变更</a>
+                <a @click="() => modifyModel(record.key)">变更</a>
                 <a-divider type="vertical" />
                 <a-popconfirm
-                    title="确认要删除此数据集吗？"
+                    title="确认要删除此模型吗？"
                     ok-text="确定"
                     cancel-text="取消"
                     @confirm="() => deleteOne(record.key)"
@@ -78,8 +78,11 @@ export default {
             table_loading: false
         }
     },
-    beforeCreate() {
+    created() {
         console.log(this.$route.params.project_id)
+        this.table_loading = true;
+
+        // 获取项目名称
         this.$axios({
             method: 'post',
             url: '/project/get-name/',
@@ -89,6 +92,22 @@ export default {
         }).then((response) => {
             console.log(response.data);
             this.project_name = response.data.name;
+        })
+
+        // 获取所有模型
+        this.$axios({
+            method: 'post',
+            url: '/model/get-all/',
+            data: {
+              "project_id": Number(this.$route.params.project_id),
+              "num": 5,
+              "start": 1
+            }
+        }).then((response) => {
+            console.log(response.data);
+            this.data = response.data.models;
+            this.pagination.total = response.data.total;
+            this.table_loading = false;
         })
     },
     methods: {
@@ -121,6 +140,39 @@ export default {
             //     this.data = response.data.projects;
             //     this.pagination.total = response.data.total;
             // })
+        },
+
+        // 删除一个模型
+        deleteOne(key) {
+            console.log("要删除的模型是:");
+            console.log(key);
+            // TODO
+            // this.$axios({
+            //     method: 'post',
+            //     url: '/user/delete/one/',
+            //     data: {"id": this.data[Number(key) - 1].id}
+            // }).then((response) => {
+            //     console.log(response.data);
+            //     if (response.data.status == 0) {
+            //         this.$message.error('删除用户失败！');
+            //     } else if (response.data.status == 1) {
+            //         this.$message.success('删除用户成功！');
+            //         this.$router.go(0);
+            //     } else {
+            //         this.$message.error('非法状态！');
+            //     }
+            // })
+        },
+
+        // 点击修改模型
+        modifyModel(key) {
+            console.log("修改模型");
+            console.log(this.data[Number(key) - 1].name);
+            console.log(this.data[Number(key) - 1].description);
+            // TODO
+            // this.tmp_name = this.data[Number(key) - 1].name;
+            // this.tmp_description = this.data[Number(key) - 1].description;
+            // this.modify_project_modal = true;
         },
     }
 }

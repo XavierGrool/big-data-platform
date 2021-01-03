@@ -320,6 +320,43 @@
                                 </a-form-model-item>
                             </a-form-model>
                         </div>
+                        <div v-if="progress > 6">
+                            <a-divider />
+                            <a-form
+                                :form="save_model_form"
+                                @submit="submitSaveModel"
+                            >
+                                <a-form-item v-if="checkedProblemType == 1">
+                                    The area under ROC for train set is {{ train_results.train_roc.toFixed(5) }}<br/>
+                                    The area under ROC for test set is {{ train_results.test_roc.toFixed(5) }}<br/>
+                                    The area under PR for train set is {{ train_results.train_pr.toFixed(5) }}<br/>
+                                    The area under PR for test set is {{ train_results.test_pr.toFixed(5) }}<br/>
+                                </a-form-item>
+                                <a-form-item v-if="checkedProblemType == 2">
+                                    The accuracy for train set is {{ train_results.train_acc.toFixed(5) }}<br/>
+                                    The accuracy for test set is {{ train_results.test_acc.toFixed(5) }}<br/>
+                                    The f1 score for train set is {{ train_results.train_f1.toFixed(5) }}<br/>
+                                    The f1 score for test set is {{ train_results.test_f1.toFixed(5) }}<br/>
+                                </a-form-item>
+                                <a-form-item>
+                                    您希望保存该模型吗？<br/>
+                                    您也可以重新调整模型和参数，再次进行训练
+                                </a-form-item>
+                                <a-form-item label="模型命名">
+                                    <a-input
+                                        v-decorator="['name', { rules: [{ required: true, message: '模型名字不得为空!' }] }]"
+                                    />
+                                </a-form-item>
+                                <a-form-item label="模型描述">
+                                    <a-textarea placeholder="选填" v-decorator="['description']" :rows="4" />
+                                </a-form-item>
+                                <a-form-item>
+                                    <a-button type="primary" html-type="submit">
+                                        保存模型
+                                    </a-button>
+                                </a-form-item>
+                            </a-form>
+                        </div>
                     </a-layout-content>
                     <a-layout-sider style="background: #fff">
                         <a-affix :offset-top="160">
@@ -380,10 +417,6 @@ const multi_class_classifiers = [
     {
         id: 3,
         name: 'Random Forest Classifier',
-    },
-    {
-        id: 4,
-        name: 'Gradient-boosted Tree Classifier',
     },
     {
         id: 5,
@@ -612,6 +645,7 @@ export default {
             select_label_form: this.$form.createForm(this, { name: 'select_label' }),
             select_features_form: this.$form.createForm(this, { name: 'select_features' }),
             select_problem_type_form: this.$form.createForm(this, { name: 'select_problem_type' }),
+            save_model_form: this.$form.createForm(this, { name: 'save_model' }),
             dataset_num: 0,
             datasets: [],
             selected_dataset_id: 0,
@@ -621,6 +655,8 @@ export default {
                 {id: 2, content: "选择 Features"},
                 {id: 3, content: "确定问题分类"},
                 {id: 4, content: "配置模型"},
+                {id: 5, content: "模型训练"},
+                {id: 6, content: "保存模型"},
             ],
             columns: [],
             checkedLabel: "",
@@ -670,6 +706,16 @@ export default {
                 lsvc_reg_param: [{ validator: checkLSVCRegParam, trigger: 'blur' }],
                 lsvc_aggregation_depth: [{ validator: checkLSVCAggregationDepth, trigger: 'blur' }],
             },
+            train_results: {
+                train_roc: 0,
+                test_roc: 0,
+                train_pr: 0,
+                test_pr: 0,
+                train_acc: 0,
+                test_acc: 0,
+                train_f1: 0,
+                test_f1: 0
+            }
         }
     },
     created() {
@@ -765,13 +811,6 @@ export default {
             this.progress = 5;
         },
 
-        // 当模型配置方式发生变更时
-        onModelConfigWayChange() {
-            console.log("当前选择的模型配置方式是:");
-            console.log(this.checkedModelConfigWay);
-            this.progress = 6;
-        },
-
         // 当选择的分类算法发生变化时
         handleClassifierSelectedChanged(value) {
             console.log("选择的分类算法发生变化")
@@ -782,30 +821,72 @@ export default {
         // 训练模型
         trainAModel() {
             console.log("开始训练！");
-            console.log("选择的数据集 id 是：");
-            console.log(this.selected_dataset_id);
-            console.log("选择的 Label 是：");
-            console.log(this.checkedLabel);
-            console.log("选择的 Features 是：");
-            console.log(this.checkedFeatures);
-            console.log("问题属于：");
-            console.log(this.checkedProblemType);
-            console.log("选择的算法是：");
-            console.log(this.selected_classifier_id);
-            console.log("算法的参数是:");
-            console.log(this.model_config_form);
-            // this.spinning = true;
-            // this.$axios({
-            //     method: 'post',
-            //     url: '/add-model/train/',
-            //     data: {
-            //         "dataset_id": value
-            //     }
-            // }).then((response) => {
-            //     console.log(response.data);
-            //     this.spinning = false;
-            // });
+            this.progress = 6;
+            this.spinning = true;
+            this.$axios({
+                method: 'post',
+                url: '/add-model/train/',
+                data: {
+                    "dataset_id": this.selected_dataset_id,
+                    "label": this.checkedLabel,
+                    "features": this.checkedFeatures,
+                    "problem_type": this.checkedProblemType,
+                    "classifier": this.selected_classifier_id,
+                    "classifier_params": this.model_config_form
+                }
+            }).then((response) => {
+                console.log(response.data);
+                if (this.checkedProblemType == 1) { // 二分类问题
+                    this.train_results.train_roc = response.data.results.train_roc;
+                    this.train_results.test_roc = response.data.results.test_roc;
+                    this.train_results.train_pr = response.data.results.train_pr;
+                    this.train_results.test_pr = response.data.results.test_pr;
+                } else if (this.checkedProblemType == 2) { // 多分类问题
+                    this.train_results.train_acc = response.data.results.train_acc;
+                    this.train_results.test_acc = response.data.results.test_acc;
+                    this.train_results.train_f1 = response.data.results.train_f1;
+                    this.train_results.test_f1 = response.data.results.test_f1;
+                }
+                this.spinning = false;
+                this.progress = 7;
+            });
         },
+
+        // 保存模型
+        submitSaveModel(e) {
+            e.preventDefault();
+            this.save_model_form.validateFields((err, values) => {
+                if (!err) {
+                    console.log('Received values of form: ', values);
+                    this.spinning = true;
+                    this.$axios({
+                        method: 'post',
+                        url: '/add-model/save/',
+                        data: {
+                            "dataset_id": this.selected_dataset_id,
+                            "label": this.checkedLabel,
+                            "features": this.checkedFeatures,
+                            "problem_type": this.checkedProblemType,
+                            "classifier": this.selected_classifier_id,
+                            "classifier_params": this.model_config_form,
+                            "model_name": values.name,
+                            "model_description": values.description == undefined? "" : values.description
+                        }
+                    }).then((response) => {
+                        console.log(response.data);
+                        this.spinning = false;
+                        if (response.data.status == 0) {
+                            this.$message.error('模型保存失败！');
+                        } else if (response.data.status == 1) {
+                            this.$message.success('模型保存成功！');
+                            this.$router.push("/dashboard/workspace/project/" + this.$route.params.project_id + "/model");
+                        } else {
+                            this.$message.error('非法状态！');
+                        }
+                    });
+                }
+            })
+        }
     }
 }
 </script>
