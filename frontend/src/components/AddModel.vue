@@ -1,0 +1,811 @@
+<template>
+<a-layout>
+    <a-layout-sider width="200" style="background: #fff">
+    <div style="height:64px;padding-top:20px;">
+        <a @click="returnToModels" style="fontSize:24px;margin-left:88px">
+            <a-icon type="left" />
+        </a>
+    </div>
+    </a-layout-sider>
+    <a-layout style="padding: 0 24px 24px">
+        <a-spin :spinning="spinning" tip="加载中...">
+        <a-breadcrumb style="margin: 16px 0">
+            <a-breadcrumb-item>Workspace</a-breadcrumb-item>
+            <a-breadcrumb-item>Projects</a-breadcrumb-item>
+            <a-breadcrumb-item>{{ project_name }}</a-breadcrumb-item>
+            <a-breadcrumb-item>Model</a-breadcrumb-item>
+            <a-breadcrumb-item>Add</a-breadcrumb-item>
+        </a-breadcrumb>
+        <a-layout-content
+            :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
+        >
+            <a-layout>
+                <a-layout v-if="dataset_num == 0" style="background: #fff">
+                    <a-result
+                        status="404"
+                        title="该项目还没有数据集"
+                        sub-title="—— 先去导入数据吧！"
+                    >
+                        <template #extra>
+                        <a-button type="primary">
+                            返回
+                        </a-button>
+                        </template>
+                    </a-result>
+                </a-layout>
+                <a-layout v-else style="background: #fff">
+                    <a-layout-content>
+                        <div>
+                            <a-form :form="select_dataset_form">
+                                <a-form-item label="数据集选择">
+                                    <a-select
+                                        placeholder="选择数据集"
+                                        style="width: 120px"
+                                        @change="handleDatasetSelectedChanged"
+                                    >
+                                        <a-select-option
+                                            v-for="dataset in datasets"
+                                            :key="dataset.id"
+                                            :value="dataset.id"
+                                        >
+                                            {{ dataset.name }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-item>
+                            </a-form>
+                        </div>
+                        <div v-if="progress > 1">
+                            <a-divider />
+                            <a-form :form="select_label_form">
+                                <a-form-item label="选择 Label">
+                                    <a-radio-group
+                                        v-model="checkedLabel"
+                                        @change="onLabelSelectedChange"
+                                    >
+                                        <a-radio
+                                            v-for="column in columns"
+                                            :key="column.index"
+                                            :value="column.index"
+                                        >
+                                            {{ column.name }}
+                                        </a-radio>
+                                    </a-radio-group>
+                                </a-form-item>
+                            </a-form>
+                        </div>
+                        <div v-if="progress > 2">
+                            <a-divider />
+                            <a-form :form="select_features_form">
+                                <a-form-item label="选择 Features">
+                                    <a-checkbox-group
+                                        v-model="checkedFeatures"
+                                        :options="featureOptions"
+                                    />
+                                </a-form-item>
+                            </a-form>
+                            <a-form-item>
+                                <a-button type="primary" @click="onFeatureSelectedConfirmed">确定</a-button>
+                            </a-form-item>
+                        </div>
+                        <div v-if="progress > 3">
+                            <a-divider />
+                            <a-form :form="select_problem_type_form">
+                                <a-form-item label="您的问题属于">
+                                    <a-radio-group
+                                        v-model="checkedProblemType"
+                                        @change="onProblemTypeChange"
+                                    >
+                                        <a-radio :value=1>二分类问题</a-radio>
+                                        <a-radio :value=2>多分类问题</a-radio>
+                                    </a-radio-group>
+                                </a-form-item>
+                            </a-form>
+                        </div>
+                        <div v-if="progress > 4">
+                            <a-divider />
+                            <a-form-model
+                                ref="modelConfigForm"
+                                :model="model_config_form"
+                                :rules="model_config_rules"
+                                layout="horizontal"
+                                :label-col="{ span: 4 }"
+                                :wrapper-col="{ span: 12 }"
+                            >
+                                <a-form-model-item>
+                                    <p>这是我们为您推荐的算法模型，其中的参数也帮您进行了设置<br/>当然，您也可以自行调整</p>
+                                </a-form-model-item>
+                                <a-form-model-item label="算法模型">
+                                    <a-select
+                                        placeholder="请选择一种算法"
+                                        style="width: 240px"
+                                        @change="handleClassifierSelectedChanged"
+                                    >
+                                        <a-select-option
+                                            v-for="classifier in classifiers"
+                                            :key="classifier.id"
+                                            :value="classifier.id"
+                                        >
+                                            {{ classifier.name }}
+                                        </a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="aggregationDepth"
+                                    prop="lr_aggregation_depth"
+                                    v-if="selected_classifier_id == 1"
+                                >
+                                    <a-input v-model="model_config_form.lr_aggregation_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="elasticNetParam"
+                                    prop="lr_elastic_net_param"
+                                    v-if="selected_classifier_id == 1"
+                                >
+                                    <a-input v-model="model_config_form.lr_elastic_net_param" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="fitIntercept"
+                                    prop="lr_fit_intercept"
+                                    v-if="selected_classifier_id == 1"
+                                >
+                                    <a-select
+                                        v-model="model_config_form.lr_fit_intercept"
+                                        style="width: 240px"
+                                    >
+                                        <a-select-option value="true">True</a-select-option>
+                                        <a-select-option value="false">False</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxIter"
+                                    prop="lr_max_iter"
+                                    v-if="selected_classifier_id == 1"
+                                >
+                                    <a-input v-model="model_config_form.lr_max_iter" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="regParam"
+                                    prop="lr_reg_param"
+                                    v-if="selected_classifier_id == 1"
+                                >
+                                    <a-input v-model="model_config_form.lr_reg_param" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxDepth"
+                                    prop="dt_max_depth"
+                                    v-if="selected_classifier_id == 2"
+                                >
+                                    <a-input v-model="model_config_form.dt_max_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="impurity"
+                                    prop="dt_impurity"
+                                    v-if="selected_classifier_id == 2"
+                                >
+                                    <a-select
+                                        v-model="model_config_form.dt_impurity"
+                                        style="width: 240px"
+                                    >
+                                        <a-select-option value="entropy">entropy</a-select-option>
+                                        <a-select-option value="gini">gini</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="impurity"
+                                    prop="rf_impurity"
+                                    v-if="selected_classifier_id == 3"
+                                >
+                                    <a-select
+                                        v-model="model_config_form.rf_impurity"
+                                        style="width: 240px"
+                                    >
+                                        <a-select-option value="entropy">entropy</a-select-option>
+                                        <a-select-option value="gini">gini</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxDepth"
+                                    prop="rf_max_depth"
+                                    v-if="selected_classifier_id == 3"
+                                >
+                                    <a-input v-model="model_config_form.rf_max_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="numtrees"
+                                    prop="rf_num_trees"
+                                    v-if="selected_classifier_id == 3"
+                                >
+                                    <a-input v-model="model_config_form.rf_num_trees" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxDepth"
+                                    prop="gbt_max_depth"
+                                    v-if="selected_classifier_id == 4"
+                                >
+                                    <a-input v-model="model_config_form.gbt_max_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxIter"
+                                    prop="gbt_max_iter"
+                                    v-if="selected_classifier_id == 4"
+                                >
+                                    <a-input v-model="model_config_form.gbt_max_iter" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="stepSize"
+                                    prop="gbt_step_size"
+                                    v-if="selected_classifier_id == 4"
+                                >
+                                    <a-input v-model="model_config_form.gbt_step_size" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="subsamplingRate"
+                                    prop="gbt_subsampling_rate"
+                                    v-if="selected_classifier_id == 4"
+                                >
+                                    <a-input v-model="model_config_form.gbt_subsampling_rate" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="smoothing"
+                                    prop="nb_smoothing"
+                                    v-if="selected_classifier_id == 5"
+                                >
+                                    <a-input v-model="model_config_form.nb_smoothing" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="modelType"
+                                    prop="nb_model_type"
+                                    v-if="selected_classifier_id == 5"
+                                >
+                                    <a-select
+                                        v-model="model_config_form.nb_model_type"
+                                        style="width: 240px"
+                                    >
+                                        <a-select-option value="multinomial">multinomial</a-select-option>
+                                        <a-select-option value="bernoulli">bernoulli</a-select-option>
+                                        <a-select-option value="gaussian">gaussian</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxIter"
+                                    prop="lsvc_max_iter"
+                                    v-if="selected_classifier_id == 6"
+                                >
+                                    <a-input v-model="model_config_form.lsvc_max_iter" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="regParam"
+                                    prop="lsvc_reg_param"
+                                    v-if="selected_classifier_id == 6"
+                                >
+                                    <a-input v-model="model_config_form.lsvc_reg_param" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="fitIntercept"
+                                    prop="lsvc_fit_intercept"
+                                    v-if="selected_classifier_id == 6"
+                                >
+                                    <a-select
+                                        v-model="model_config_form.lsvc_fit_intercept"
+                                        style="width: 240px"
+                                    >
+                                        <a-select-option value="true">True</a-select-option>
+                                        <a-select-option value="false">False</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="standardization"
+                                    prop="lsvc_standardization"
+                                    v-if="selected_classifier_id == 6"
+                                >
+                                    <a-select
+                                        v-model="model_config_form.lsvc_standardization"
+                                        style="width: 240px"
+                                    >
+                                        <a-select-option value="true">True</a-select-option>
+                                        <a-select-option value="false">False</a-select-option>
+                                    </a-select>
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="aggregationDepth"
+                                    prop="lsvc_aggregation_depth"
+                                    v-if="selected_classifier_id == 6"
+                                >
+                                    <a-input v-model="model_config_form.lsvc_aggregation_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item v-if="selected_classifier_id > 0">
+                                    <a-button type="primary" @click="trainAModel">
+                                        开始训练
+                                    </a-button>
+                                </a-form-model-item>
+                            </a-form-model>
+                        </div>
+                    </a-layout-content>
+                    <a-layout-sider style="background: #fff">
+                        <a-affix :offset-top="160">
+                        <a-steps
+                            direction="vertical"
+                            size="small"
+                            :current="progress - 1"
+                        >
+                            <a-step
+                                v-for="step in steps"
+                                :key="step.id"
+                                :title="step.content"
+                            />
+                        </a-steps>
+                        </a-affix>
+                    </a-layout-sider>
+                </a-layout>
+            </a-layout>
+        </a-layout-content>
+        </a-spin>
+    </a-layout>
+</a-layout>
+</template>
+
+<script>
+const binary_class_classifiers = [
+    {
+        id: 1,
+        name: 'Logistic Regression',
+    },
+    {
+        id: 2,
+        name: 'Decision Tree Classifier',
+    },
+    {
+        id: 3,
+        name: 'Random Forest Classifier',
+    },
+    {
+        id: 4,
+        name: 'Gradient-boosted Tree Classifier',
+    },
+    {
+        id: 5,
+        name: 'Naive Bayes',
+    },
+    {
+        id: 6,
+        name: 'Linear Support Vector Machine',
+    },
+];
+
+const multi_class_classifiers = [
+    {
+        id: 2,
+        name: 'Decision Tree Classifier',
+    },
+    {
+        id: 3,
+        name: 'Random Forest Classifier',
+    },
+    {
+        id: 4,
+        name: 'Gradient-boosted Tree Classifier',
+    },
+    {
+        id: 5,
+        name: 'Naive Bayes',
+    },
+];
+
+export default {
+    name: "AddModel",
+    data() {
+        let checkLRAggregationDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('aggregationDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('aggregationDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 2) {
+                    callback(new Error('aggregationDepth 的值必须大于等于 2'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLRElasticNetParam = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('elasticNetParam 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('elasticNetParam 不得为字符串！'));
+            } else {
+                if (Number(value) < 0 || Number(value) > 1) {
+                    callback(new Error('elasticNetParam 的取值范围为 [0, 1]'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLRMaxIter = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxIter 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxIter 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxIter 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLRRegParam = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('regParam 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('regParam 不得为字符串！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('regParam 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkDTMaxDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxDepth 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkRFMaxDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxDepth 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkRFNumTrees = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('numtrees 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('numtrees 必须为整形！'));
+            } else {
+                if (Number(value) < 1) {
+                    callback(new Error('numtrees 的值必须大于等于 1'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkGBTMaxDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxDepth 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkGBTMaxIter = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxIter 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxIter 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxIter 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkGBTStepSize = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('stepSize 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('stepSize 不得为字符串！'));
+            } else {
+                if (Number(value) <= 0 || Number(value) > 1) {
+                    callback(new Error('stepSize 的取值范围为 (0, 1]'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkGBTSubsamplingRate = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('subsamplingRate 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('subsamplingRate 不得为字符串！'));
+            } else {
+                if (Number(value) <= 0 || Number(value) > 1) {
+                    callback(new Error('subsamplingRate 的取值范围为 (0, 1]'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkNBSmoothing = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('smoothing 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('smoothing 不得为字符串！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('smoothing 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLSVCMaxIter = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxIter 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxIter 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxIter 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLSVCRegParam = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('regParam 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('regParam 不得为字符串！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('regParam 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLSVCAggregationDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('aggregationDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('aggregationDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 2) {
+                    callback(new Error('aggregationDepth 的值必须大于等于 2'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        return {
+            spinning: false,
+            progress: 1,
+            project_name: "",
+            select_dataset_form: this.$form.createForm(this, { name: 'select_dataset' }),
+            select_label_form: this.$form.createForm(this, { name: 'select_label' }),
+            select_features_form: this.$form.createForm(this, { name: 'select_features' }),
+            select_problem_type_form: this.$form.createForm(this, { name: 'select_problem_type' }),
+            dataset_num: 0,
+            datasets: [],
+            selected_dataset_id: 0,
+            steps: [
+                {id: 0, content: "选择数据集"},
+                {id: 1, content: "选择 Label"},
+                {id: 2, content: "选择 Features"},
+                {id: 3, content: "确定问题分类"},
+                {id: 4, content: "配置模型"},
+            ],
+            columns: [],
+            checkedLabel: "",
+            checkedFeatures: [],
+            featureOptions: [],
+            checkedProblemType: 0,
+            checkedModelConfigWay: 0,
+            classifiers: [],
+            selected_classifier_id: 0,
+            model_config_form: {
+                lr_aggregation_depth: "2",
+                lr_elastic_net_param: "0.0",
+                lr_fit_intercept: "true",
+                lr_max_iter: "100",
+                lr_reg_param: "0.0",
+                dt_max_depth: "5",
+                dt_impurity: "gini",
+                rf_impurity: "gini",
+                rf_max_depth: "5",
+                rf_num_trees: "20",
+                gbt_max_depth: "5",
+                gbt_max_iter: "20",
+                gbt_step_size: "0.1",
+                gbt_subsampling_rate: "1.0",
+                lsvc_max_iter: "100",
+                lsvc_reg_param: "0.0",
+                lsvc_fit_intercept: "true",
+                lsvc_standardization: "true",
+                lsvc_aggregation_depth: "2",
+                nb_smoothing: "1.0",
+                nb_model_type: "multinomial",
+            },
+            model_config_rules: {
+                lr_aggregation_depth: [{ validator: checkLRAggregationDepth, trigger: 'blur' }],
+                lr_elastic_net_param: [{ validator: checkLRElasticNetParam, trigger: 'blur' }],
+                lr_max_iter: [{ validator: checkLRMaxIter, trigger: 'blur' }],
+                lr_reg_param: [{ validator: checkLRRegParam, trigger: 'blur' }],
+                dt_max_depth: [{ validator: checkDTMaxDepth, trigger: 'blur' }],
+                rf_max_depth: [{ validator: checkRFMaxDepth, trigger: 'blur' }],
+                rf_num_trees: [{ validator: checkRFNumTrees, trigger: 'blur' }],
+                gbt_max_depth: [{ validator: checkGBTMaxDepth, trigger: 'blur' }],
+                gbt_max_iter: [{ validator: checkGBTMaxIter, trigger: 'blur' }],
+                gbt_step_size: [{ validator: checkGBTStepSize, trigger: 'blur' }],
+                gbt_subsampling_rate: [{ validator: checkGBTSubsamplingRate, trigger: 'blur' }],
+                nb_smoothing: [{ validator: checkNBSmoothing, trigger: 'blur' }],
+                lsvc_max_iter: [{ validator: checkLSVCMaxIter, trigger: 'blur' }],
+                lsvc_reg_param: [{ validator: checkLSVCRegParam, trigger: 'blur' }],
+                lsvc_aggregation_depth: [{ validator: checkLSVCAggregationDepth, trigger: 'blur' }],
+            },
+        }
+    },
+    created() {
+        this.spinning = true;
+
+        // 获取项目名称
+        this.$axios({
+            method: 'post',
+            url: '/project/get-name/',
+            data: {
+                "id": Number(this.$route.params.project_id)
+            }
+        }).then((response) => {
+            console.log(response.data);
+            this.project_name = response.data.name;
+        });
+
+        // 获取当前项目下的数据集
+        this.$axios({
+            method: 'post',
+            url: '/add-model/get-dataset/',
+            data: {
+                "id": Number(this.$route.params.project_id)
+            }
+        }).then((response) => {
+            console.log(response.data);
+            this.dataset_num = response.data.dataset_num;
+            this.datasets = response.data.datasets;
+            this.spinning = false;
+        });
+    },
+    methods: {
+        // 返回模型管理
+        returnToModels() {
+            var path = this.$route.path;
+            this.$router.push(path.slice(0, path.lastIndexOf("/")))
+        },
+
+        // 选择的数据集发生变化
+        handleDatasetSelectedChanged(value) {
+            console.log("选择的数据集发生变化")
+            console.log(`selected ${value}`);
+            this.selected_dataset_id = value;
+            this.progress = 1;
+            this.spinning = true;
+            this.$axios({
+                method: 'post',
+                url: '/add-model/get-columns/',
+                data: {
+                    "dataset_id": value
+                }
+            }).then((response) => {
+                console.log(response.data);
+                this.columns = response.data.columns;
+                this.progress = 2;
+                this.spinning = false;
+            });
+        },
+
+        // onLabelSelectedChange
+        onLabelSelectedChange(e) {
+            console.log("当前选中的 label 是:");
+            console.log(this.checkedLabel);
+            this.progress = 2;
+            this.featureOptions = [];
+            this.checkedFeatures = [];
+            for (var i = 0; i < this.columns.length; i++) {
+                if (e.target.value != this.columns[i].index) {
+                    var tmp = new Object();
+                    tmp.label = this.columns[i].name;
+                    tmp.value = this.columns[i].index;
+                    this.featureOptions.push(tmp);
+                }
+            }
+            this.progress = 3;
+        },
+
+        // 当确认选定的 features 时
+        onFeatureSelectedConfirmed() {
+            console.log(this.checkedFeatures)
+            this.progress = 4;
+        },
+
+        // 当问题类型发生变更时
+        onProblemTypeChange() {
+            console.log("当前选择的问题分类是:");
+            console.log(this.checkedProblemType);
+            if (this.checkedProblemType == 1) {
+                this.classifiers = binary_class_classifiers;
+            } else if (this.checkedProblemType == 2) {
+                this.classifiers = multi_class_classifiers;
+            }
+            this.progress = 5;
+        },
+
+        // 当模型配置方式发生变更时
+        onModelConfigWayChange() {
+            console.log("当前选择的模型配置方式是:");
+            console.log(this.checkedModelConfigWay);
+            this.progress = 6;
+        },
+
+        // 当选择的分类算法发生变化时
+        handleClassifierSelectedChanged(value) {
+            console.log("选择的分类算法发生变化")
+            console.log(`selected ${value}`);
+            this.selected_classifier_id = value;
+        },
+
+        // 训练模型
+        trainAModel() {
+            console.log("开始训练！");
+            console.log("选择的数据集 id 是：");
+            console.log(this.selected_dataset_id);
+            console.log("选择的 Label 是：");
+            console.log(this.checkedLabel);
+            console.log("选择的 Features 是：");
+            console.log(this.checkedFeatures);
+            console.log("问题属于：");
+            console.log(this.checkedProblemType);
+            console.log("选择的算法是：");
+            console.log(this.selected_classifier_id);
+            console.log("算法的参数是:");
+            console.log(this.model_config_form);
+            // this.spinning = true;
+            // this.$axios({
+            //     method: 'post',
+            //     url: '/add-model/train/',
+            //     data: {
+            //         "dataset_id": value
+            //     }
+            // }).then((response) => {
+            //     console.log(response.data);
+            //     this.spinning = false;
+            // });
+        },
+    }
+}
+</script>

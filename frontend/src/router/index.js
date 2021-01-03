@@ -11,6 +11,7 @@ import Dataset from '../components/Dataset.vue'
 import Model from '../components/Model.vue'
 import Prediction from '../components/Prediction.vue'
 import InspectData from '../components/InspectData.vue'
+import AddModel from '../components/AddModel.vue'
 // import Test from '../views/Test.vue'
 
 Vue.use(VueRouter)
@@ -57,6 +58,10 @@ const routes = [
           {
             path: 'project/:project_id/dataset/:dataset_id',
             component: InspectData
+          },
+          {
+            path: 'project/:project_id/model/add',
+            component: AddModel
           },
         ]
       },
