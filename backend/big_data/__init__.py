@@ -53,4 +53,10 @@ def create_app(test_config=None):
     from . import dataset
     app.register_blueprint(dataset.bp)
 
+    from . import model
+    app.register_blueprint(model.bp)
+
+    from . import addModel
+    app.register_blueprint(addModel.bp)
+
     return app

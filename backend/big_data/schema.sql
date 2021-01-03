@@ -1,5 +1,7 @@
 DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS project;
+DROP TABLE IF EXISTS dataset;
+DROP TABLE IF EXISTS model;
 
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,6 +22,13 @@ CREATE TABLE dataset (
   project_id INTEGER NOT NULL,
   name TEXT NOT NULL,
   filename TEXT NOT NULL,
+  description TEXT
+);
+
+CREATE TABLE model (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
   description TEXT
 );
 
