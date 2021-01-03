@@ -34,101 +34,94 @@
                     </a-result>
                 </a-layout>
                 <a-layout v-else style="background: #fff">
-                    <a-layout-content>
+                    <a-layout-content style="padding-right: 160px">
                         <div>
-                            <a-form :form="select_dataset_form">
-                                <a-form-item label="数据集选择">
-                                    <a-select
-                                        placeholder="选择数据集"
-                                        style="width: 120px"
-                                        @change="handleDatasetSelectedChanged"
-                                    >
-                                        <a-select-option
-                                            v-for="dataset in datasets"
-                                            :key="dataset.id"
-                                            :value="dataset.id"
-                                        >
-                                            {{ dataset.name }}
-                                        </a-select-option>
-                                    </a-select>
-                                </a-form-item>
-                            </a-form>
+                            <div style="font-size: 24px; margin-bottom: 16px">选择数据集</div>
+                            <a-select
+                                placeholder="选择数据集"
+                                style="width: 240px"
+                                @change="handleDatasetSelectedChanged"
+                            >
+                                <a-select-option
+                                    v-for="dataset in datasets"
+                                    :key="dataset.id"
+                                    :value="dataset.id"
+                                >
+                                    {{ dataset.name }}
+                                </a-select-option>
+                            </a-select>
                         </div>
                         <div v-if="progress > 1">
                             <a-divider />
-                            <a-form :form="select_label_form">
-                                <a-form-item label="选择 Label">
-                                    <a-radio-group
-                                        v-model="checkedLabel"
-                                        @change="onLabelSelectedChange"
-                                    >
-                                        <a-radio
-                                            v-for="column in columns"
-                                            :key="column.index"
-                                            :value="column.index"
-                                        >
-                                            {{ column.name }}
-                                        </a-radio>
-                                    </a-radio-group>
-                                </a-form-item>
-                            </a-form>
+                            <div style="font-size: 24px; margin-bottom: 16px">选择 Label</div>
+                            <a-radio-group
+                                v-model="checkedLabel"
+                                @change="onLabelSelectedChange"
+                            >
+                                <a-radio
+                                    v-for="column in columns"
+                                    :key="column.index"
+                                    :value="column.index"
+                                >
+                                    {{ column.name }}
+                                </a-radio>
+                            </a-radio-group>
                         </div>
                         <div v-if="progress > 2">
                             <a-divider />
-                            <a-form :form="select_features_form">
-                                <a-form-item label="选择 Features">
-                                    <a-checkbox-group
-                                        v-model="checkedFeatures"
-                                        :options="featureOptions"
-                                    />
-                                </a-form-item>
-                            </a-form>
-                            <a-form-item>
-                                <a-button type="primary" @click="onFeatureSelectedConfirmed">确定</a-button>
-                            </a-form-item>
+                            <div style="font-size: 24px; margin-bottom: 24px">选择 Features</div>
+                            <a-space direction="vertical" size="middle">
+                                <a-checkbox-group
+                                    v-model="checkedFeatures"
+                                    :options="featureOptions"
+                                />
+                                <a-button
+                                    type="primary" 
+                                    @click="onFeatureSelectedConfirmed"
+                                >
+                                    选定<a-icon type="check-circle" />
+                                </a-button>
+                            </a-space>
                         </div>
                         <div v-if="progress > 3">
                             <a-divider />
-                            <a-form :form="select_problem_type_form">
-                                <a-form-item label="您的问题属于">
-                                    <a-radio-group
-                                        v-model="checkedProblemType"
-                                        @change="onProblemTypeChange"
-                                    >
-                                        <a-radio :value=1>二分类问题</a-radio>
-                                        <a-radio :value=2>多分类问题</a-radio>
-                                    </a-radio-group>
-                                </a-form-item>
-                            </a-form>
+                            <div style="font-size: 24px; margin-bottom: 16px">确定问题分类</div>
+                            <div style="font-size: 16px; margin-bottom: 7px">您的问题属于：</div>
+                            <a-radio-group
+                                v-model="checkedProblemType"
+                                @change="onProblemTypeChange"
+                            >
+                                <a-radio :value=1>二分类问题</a-radio>
+                                <a-radio :value=2>多分类问题</a-radio>
+                            </a-radio-group>
                         </div>
                         <div v-if="progress > 4">
                             <a-divider />
+                            <div style="font-size: 24px; margin-bottom: 48px">配置模型</div>
+                            <div style="margin-bottom: 4px">以下是我们为您推荐的算法模型，其中的参数也进行了自动设置。<br/></div>
+                            <div style="margin-bottom: 48px">当然，您也可以自行调整。</div>
+                            <div style="font-size: 16px; margin-bottom: 7px">算法模型：</div>
+                            <a-select
+                                placeholder="请选择一种算法"
+                                style="width: 250px; margin-bottom: 36px"
+                                v-model="selected_classifier_id"
+                                @change="handleClassifierSelectedChanged"
+                            >
+                                <a-select-option
+                                    v-for="classifier in classifiers"
+                                    :key="classifier.id"
+                                >
+                                    {{ classifier.name }}
+                                </a-select-option>
+                            </a-select>
+                            <div style="width: 60%"><a-divider orientation="left">参数设置</a-divider></div>
                             <a-form-model
                                 ref="modelConfigForm"
+                                layout="horizontal"
+                                style="width: 40%"
                                 :model="model_config_form"
                                 :rules="model_config_rules"
-                                layout="horizontal"
-                                :label-col="{ span: 4 }"
-                                :wrapper-col="{ span: 12 }"
                             >
-                                <a-form-model-item>
-                                    <p>这是我们为您推荐的算法模型，其中的参数也帮您进行了设置<br/>当然，您也可以自行调整</p>
-                                </a-form-model-item>
-                                <a-form-model-item label="算法模型">
-                                    <a-select
-                                        placeholder="请选择一种算法"
-                                        style="width: 240px"
-                                        @change="handleClassifierSelectedChanged"
-                                    >
-                                        <a-select-option
-                                            v-for="classifier in classifiers"
-                                            :key="classifier.id"
-                                            :value="classifier.id"
-                                        >
-                                            {{ classifier.name }}
-                                        </a-select-option>
-                                    </a-select>
-                                </a-form-model-item>
                                 <a-form-model-item
                                     label="aggregationDepth"
                                     prop="lr_aggregation_depth"
@@ -150,7 +143,7 @@
                                 >
                                     <a-select
                                         v-model="model_config_form.lr_fit_intercept"
-                                        style="width: 240px"
+                                        style="width: 100px"
                                     >
                                         <a-select-option value="true">True</a-select-option>
                                         <a-select-option value="false">False</a-select-option>
@@ -162,7 +155,7 @@
                                     v-if="selected_classifier_id == 1"
                                 >
                                     <a-input v-model="model_config_form.lr_max_iter" />
-                                </a-form-model-item>
+                                    </a-form-model-item>
                                 <a-form-model-item
                                     label="regParam"
                                     prop="lr_reg_param"
@@ -184,7 +177,7 @@
                                 >
                                     <a-select
                                         v-model="model_config_form.dt_impurity"
-                                        style="width: 240px"
+                                        style="width: 120px"
                                     >
                                         <a-select-option value="entropy">entropy</a-select-option>
                                         <a-select-option value="gini">gini</a-select-option>
@@ -197,7 +190,7 @@
                                 >
                                     <a-select
                                         v-model="model_config_form.rf_impurity"
-                                        style="width: 240px"
+                                        style="width: 120px"
                                     >
                                         <a-select-option value="entropy">entropy</a-select-option>
                                         <a-select-option value="gini">gini</a-select-option>
@@ -259,7 +252,7 @@
                                 >
                                     <a-select
                                         v-model="model_config_form.nb_model_type"
-                                        style="width: 240px"
+                                        style="width: 140px"
                                     >
                                         <a-select-option value="multinomial">multinomial</a-select-option>
                                         <a-select-option value="bernoulli">bernoulli</a-select-option>
@@ -287,7 +280,7 @@
                                 >
                                     <a-select
                                         v-model="model_config_form.lsvc_fit_intercept"
-                                        style="width: 240px"
+                                        style="width: 100px"
                                     >
                                         <a-select-option value="true">True</a-select-option>
                                         <a-select-option value="false">False</a-select-option>
@@ -300,7 +293,7 @@
                                 >
                                     <a-select
                                         v-model="model_config_form.lsvc_standardization"
-                                        style="width: 240px"
+                                        style="width: 100px"
                                     >
                                         <a-select-option value="true">True</a-select-option>
                                         <a-select-option value="false">False</a-select-option>
@@ -321,27 +314,97 @@
                             </a-form-model>
                         </div>
                         <div v-if="progress > 6">
+                            <a-card
+                                style="width:50%"
+                                title="训练结果"
+                                v-if="checkedProblemType == 1"
+                                :tab-list="tabList[0]"
+                                :active-tab-key="key"
+                                @tabChange="key => onTabChange(key, 'key')"
+                            >
+                                <div v-if="key == 'tab1'">
+                                    <a-space size="large">
+                                    <a-statistic
+                                        title="训练集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.train_roc * 100"
+                                    />
+                                    <a-statistic
+                                        title="测试集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.test_roc * 100" 
+                                    />
+                                    </a-space>
+                                </div>
+                                <div v-if="key == 'tab2'">
+                                    <a-space size="large">
+                                    <a-statistic
+                                        title="训练集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.train_pr * 100"
+                                    />
+                                    <a-statistic
+                                        title="测试集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.test_pr * 100" 
+                                    />
+                                    </a-space>
+                                </div>
+                            </a-card>
+                            <a-card
+                                style="width:50%"
+                                title="训练结果"
+                                v-if="checkedProblemType == 2"
+                                :tab-list="tabList[1]"
+                                :active-tab-key="key"
+                                @tabChange="key => onTabChange(key, 'key')"
+                            >
+                                <div v-if="key === 'tab1'">
+                                    <a-space size="large">
+                                    <a-statistic
+                                        title="训练集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.train_acc * 100"
+                                    />
+                                    <a-statistic
+                                        title="测试集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.test_acc * 100" 
+                                    />
+                                    </a-space>
+                                </div>
+                                <div v-if="key === 'tab2'">
+                                    <a-space size="large">
+                                    <a-statistic
+                                        title="训练集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.train_f1 * 100"
+                                    />
+                                    <a-statistic
+                                        title="测试集"
+                                        suffix="%"
+                                        :precision="5"
+                                        :value="train_results.test_f1 * 100" 
+                                    />
+                                    </a-space>
+                                </div>
+                            </a-card>
                             <a-divider />
+                            <div style="font-size: 24px; margin-bottom: 24px">保存模型</div>
+                            <div style="margin-bottom: 4px">您希望保存该模型吗？<br/></div>
+                            <div style="margin-bottom: 36px">您也可以重新调整模型和参数，再次进行训练。</div>
                             <a-form
+                                style="width: 60%"
                                 :form="save_model_form"
                                 @submit="submitSaveModel"
                             >
-                                <a-form-item v-if="checkedProblemType == 1">
-                                    The area under ROC for train set is {{ train_results.train_roc.toFixed(5) }}<br/>
-                                    The area under ROC for test set is {{ train_results.test_roc.toFixed(5) }}<br/>
-                                    The area under PR for train set is {{ train_results.train_pr.toFixed(5) }}<br/>
-                                    The area under PR for test set is {{ train_results.test_pr.toFixed(5) }}<br/>
-                                </a-form-item>
-                                <a-form-item v-if="checkedProblemType == 2">
-                                    The accuracy for train set is {{ train_results.train_acc.toFixed(5) }}<br/>
-                                    The accuracy for test set is {{ train_results.test_acc.toFixed(5) }}<br/>
-                                    The f1 score for train set is {{ train_results.train_f1.toFixed(5) }}<br/>
-                                    The f1 score for test set is {{ train_results.test_f1.toFixed(5) }}<br/>
-                                </a-form-item>
-                                <a-form-item>
-                                    您希望保存该模型吗？<br/>
-                                    您也可以重新调整模型和参数，再次进行训练
-                                </a-form-item>
                                 <a-form-item label="模型命名">
                                     <a-input
                                         v-decorator="['name', { rules: [{ required: true, message: '模型名字不得为空!' }] }]"
@@ -358,7 +421,7 @@
                             </a-form>
                         </div>
                     </a-layout-content>
-                    <a-layout-sider style="background: #fff">
+                    <a-layout-sider style="background: #fff; margin-right: 120px">
                         <a-affix :offset-top="160">
                         <a-steps
                             direction="vertical"
@@ -663,7 +726,6 @@ export default {
             checkedFeatures: [],
             featureOptions: [],
             checkedProblemType: 0,
-            checkedModelConfigWay: 0,
             classifiers: [],
             selected_classifier_id: 0,
             model_config_form: {
@@ -715,7 +777,12 @@ export default {
                 test_acc: 0,
                 train_f1: 0,
                 test_f1: 0
-            }
+            },
+            tabList: [
+                [{key: "tab1", tab: 'ROC'}, {key: "tab2", tab: 'PR'}],
+                [{key: "tab1", tab: 'ACC'}, {key: "tab2", tab: 'F1'}]
+            ],
+            key: "tab1",
         }
     },
     created() {
@@ -758,6 +825,7 @@ export default {
         handleDatasetSelectedChanged(value) {
             console.log("选择的数据集发生变化")
             console.log(`selected ${value}`);
+            this.checkedLabel = "";
             this.selected_dataset_id = value;
             this.progress = 1;
             this.spinning = true;
@@ -775,7 +843,7 @@ export default {
             });
         },
 
-        // onLabelSelectedChange
+        // 当选择的 label 发生变化
         onLabelSelectedChange(e) {
             console.log("当前选中的 label 是:");
             console.log(this.checkedLabel);
@@ -796,7 +864,12 @@ export default {
         // 当确认选定的 features 时
         onFeatureSelectedConfirmed() {
             console.log(this.checkedFeatures)
-            this.progress = 4;
+            this.checkedProblemType = 0;
+            if (this.checkedFeatures.length == 0) {
+                this.$message.error('请选择 features');
+            } else {
+                this.progress = 4;
+            }
         },
 
         // 当问题类型发生变更时
@@ -805,8 +878,10 @@ export default {
             console.log(this.checkedProblemType);
             if (this.checkedProblemType == 1) {
                 this.classifiers = binary_class_classifiers;
+                this.selected_classifier_id = 4;
             } else if (this.checkedProblemType == 2) {
                 this.classifiers = multi_class_classifiers;
+                this.selected_classifier_id = 3;
             }
             this.progress = 5;
         },
@@ -815,6 +890,30 @@ export default {
         handleClassifierSelectedChanged(value) {
             console.log("选择的分类算法发生变化")
             console.log(`selected ${value}`);
+
+            // 重置各默认参数
+            this.model_config_form.lr_aggregation_depth = "2";
+            this.model_config_form.lr_elastic_net_param = "0.0";
+            this.model_config_form.lr_fit_intercept = "true";
+            this.model_config_form.lr_max_iter = "100";
+            this.model_config_form.lr_reg_param = "0.0";
+            this.model_config_form.dt_max_depth = "5";
+            this.model_config_form.dt_impurity = "gini";
+            this.model_config_form.rf_impurity = "gini";
+            this.model_config_form.rf_max_depth = "5";
+            this.model_config_form.rf_num_trees = "20";
+            this.model_config_form.gbt_max_depth = "5";
+            this.model_config_form.gbt_max_iter = "20";
+            this.model_config_form.gbt_step_size = "0.1";
+            this.model_config_form.gbt_subsampling_rate = "1.0";
+            this.model_config_form.lsvc_max_iter = "100";
+            this.model_config_form.lsvc_reg_param = "0.0";
+            this.model_config_form.lsvc_fit_intercept = "true";
+            this.model_config_form.lsvc_standardization = "true";
+            this.model_config_form.lsvc_aggregation_depth = "2";
+            this.model_config_form.nb_smoothing = "1.0";
+            this.model_config_form.nb_model_type = "multinomial";
+
             this.selected_classifier_id = value;
         },
 
@@ -886,7 +985,13 @@ export default {
                     });
                 }
             })
-        }
+        },
+
+        // 切换标签
+        onTabChange(key, type) {
+            console.log(key, type);
+            this[type] = key;
+        },
     }
 }
 </script>
