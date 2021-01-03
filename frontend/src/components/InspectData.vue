@@ -32,32 +32,6 @@
 </template>
 
 <script>
-const test_columns = [
-    {
-        title: '数据集名称',
-        dataIndex: 'name',
-    },
-    {
-        title: '描述',
-        dataIndex: 'description',
-    },
-];
-
-const test_data = [
-    {
-        id: 1,
-        key: '1',
-        name: 'Iris',
-        description: 'class ~ sepal length + sepal width + petal length + petal width'
-    },
-    {
-        id: 2,
-        key: '2',
-        name: 'Caesarian',
-        description: 'caesarian ~ age + delivery number + delivery time + blood of pressure + heart problem'
-    },
-];
-
 export default {
     name: "InspectData",
     data() {
