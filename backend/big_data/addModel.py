@@ -52,15 +52,21 @@ def getDF(dataset_id):
 
 # 数据预处理
 def dataPreProcess(df, label, features):
-    # 把 df 中数据类型是字符串的各列先 StringIndexer 一下
+    # 把 df 中除 label 列的数据类型是字符串的各列先 StringIndexer 一下
     for i, dtype in enumerate(df.dtypes):
-        if dtype[1] == "string":
+        if dtype[1] == "string" and i != int(label):
             df = df.withColumnRenamed(dtype[0], dtype[0] + "_old")
             indexer = StringIndexer(inputCol = dtype[0] + "_old", outputCol = dtype[0])
             df = indexer.fit(df).transform(df)
 
+    # 用 StringIndexer 对 label 列进行处理
+    label_name = df.dtypes[int(label)][0]
+    df = df.withColumnRenamed(label_name, label_name + "_old")
+    indexer = StringIndexer(inputCol = label_name + "_old", outputCol = label_name)
+    df = indexer.fit(df).transform(df)
+
     # 装配 label 和 features vector
-    formula_str = df.columns[int(label)] + "~"
+    formula_str = df.columns[-1] + "~"
     for feature in features:
         formula_str = formula_str + df.columns[int(feature)] + "+"
     formula_str = formula_str[:-1]
@@ -376,8 +382,8 @@ def save():
     # 在数据库中进行记录 #
     ####################
 
-    t = (project_id, model_name, model_description)
-    c.execute("INSERT INTO model (project_id, name, description) VALUES (?, ?, ?)", t)
+    t = (project_id, model_name, model_description, classifier, dataset_id, int(label))
+    c.execute("INSERT INTO model (project_id, name, description, type, dataset_id, label_index) VALUES (?, ?, ?, ?, ?, ?)", t)
     db.commit()
     close_db()
 

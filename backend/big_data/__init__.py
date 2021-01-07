@@ -59,4 +59,7 @@ def create_app(test_config=None):
     from . import addModel
     app.register_blueprint(addModel.bp)
 
+    from . import prediction
+    app.register_blueprint(prediction.bp)
+
     return app
