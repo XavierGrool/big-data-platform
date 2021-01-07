@@ -29,7 +29,10 @@ CREATE TABLE model (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER NOT NULL,
   name TEXT NOT NULL,
-  description TEXT
+  description TEXT,
+  type INTEGER NOT NULL,
+  dataset_id INTEGER NOT NULL,
+  label_index INTEGER NOT NULL
 );
 
 INSERT INTO user (username, password, permission) VALUES ('admin', '123456', 16);
