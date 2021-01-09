@@ -1,7 +1,5 @@
 # 大数据分析工具平台使用手册
 
-[TOC]
-
 ## 1. 系统部署
 ### 1.1 项目运行环境
 docker
@@ -115,4 +113,7 @@ docker volume rm big-data-platform_hadoop_datanode1 big-data-platform_hadoop_dat
 ![保存模型](http://futureyu.cn:8000/pics/16.png)
 
 ### 4.3 预测分析
-TODO
+点击左侧预测分析之后，首先点击选择模型，选取之前保存过的模型，然后选择测试集，并选择 Feature，在点击开始预测之后，系统会根据模型自动对测试集进行预测分析。
+
+![预测分析](http://futureyu.cn:8000/pics/17.jpg)
+
