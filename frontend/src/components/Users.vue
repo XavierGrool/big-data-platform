@@ -78,9 +78,11 @@
                 <a-tag
                     v-for="tag in tags"
                     :key="tag"
-                    :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'"
+                    :color="tag === '数据集' ? 'orange' : 
+                            tag === '模型管理' ? 'green' : 
+                            tag === '预测分析' ? 'red' : 'blue'"
                 >
-                    {{ tag.toUpperCase() }}
+                    {{ tag }}
                 </a-tag>
             </span>
             <span slot="action" slot-scope="record">
@@ -138,39 +140,24 @@ const SHOW_PARENT = TreeSelect.SHOW_PARENT;
 
 const treeData = [
   {
-    title: 'Node1',
-    value: '0-0',
-    key: '0-0',
-    children: [
-      {
-        title: 'Child Node1',
-        value: '0-0-0',
-        key: '0-0-0',
-      },
-    ],
+    title: '数据集',
+    value: '0',
+    key: '0',
   },
   {
-    title: 'Node2',
-    value: '0-1',
-    key: '0-1',
-    children: [
-      {
-        title: 'Child Node3',
-        value: '0-1-0',
-        key: '0-1-0',
-        disabled: true,
-      },
-      {
-        title: 'Child Node4',
-        value: '0-1-1',
-        key: '0-1-1',
-      },
-      {
-        title: 'Child Node5',
-        value: '0-1-2',
-        key: '0-1-2',
-      },
-    ],
+    title: '模型管理',
+    value: '1',
+    key: '1',
+  },
+  {
+    title: '预测分析',
+    value: '2',
+    key: '2',
+  },
+  {
+    title: '用户管理',
+    value: '3',
+    key: '3',
   },
 ];
 
