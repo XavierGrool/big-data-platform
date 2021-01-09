@@ -34,6 +34,31 @@
                 </a-popconfirm>
             </span>
         </a-table>
+        <a-modal
+            title="模型变更"
+            :visible="modify_model_modal"
+            :footer="null"
+            @cancel="closeModifyModelModal"
+        >
+            <a-form
+                :form="modify_model_form"
+                :label-col="{ span: 5 }"
+                :wrapper-col="{ span: 12 }"
+                @submit="submitModification"
+            >
+                <a-form-item label="模型名称">
+                    <a-input :value="tmp_name" />
+                </a-form-item>
+                <a-form-item label="模型描述">
+                    <a-textarea :value="tmp_description" :rows="4" />
+                </a-form-item>
+                <a-form-item :wrapper-col="{ span: 12, offset: 5 }">
+                    <a-button type="primary" html-type="submit">
+                        提交
+                    </a-button>
+                </a-form-item>
+            </a-form>
+        </a-modal>
     </a-layout-content>
 </a-layout>
 </template>
@@ -75,7 +100,11 @@ export default {
                     console.log(this.selected_row_keys)
                 }
             },
-            table_loading: false
+            table_loading: false,
+            modify_model_modal: false,
+            modify_model_form: this.$form.createForm(this, { name: 'modify_model' }),
+            tmp_name: "",
+            tmp_description: "",
         }
     },
     created() {
@@ -169,10 +198,25 @@ export default {
             console.log("修改模型");
             console.log(this.data[Number(key) - 1].name);
             console.log(this.data[Number(key) - 1].description);
-            // TODO
-            // this.tmp_name = this.data[Number(key) - 1].name;
-            // this.tmp_description = this.data[Number(key) - 1].description;
-            // this.modify_project_modal = true;
+            this.tmp_name = this.data[Number(key) - 1].name;
+            this.tmp_description = this.data[Number(key) - 1].description;
+            this.modify_model_modal = true;
+        },
+
+        // 关闭修改模型对话框
+        closeModifyModelModal() {
+            this.modify_model_modal = false;
+        },
+
+        // 提交模型变更
+        submitModification(e) {
+            e.preventDefault();
+            this.modify_model_form.validateFields((err, values) => {
+                if (!err) {
+                    console.log('Received values of form: ', values);
+                    // TODO
+                }
+            })
         },
     }
 }
