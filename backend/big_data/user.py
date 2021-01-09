@@ -209,7 +209,7 @@ def getAllUsers():
             "id": 0,
             "key": "",
             "name": "",
-            "permission": ['nice', 'developer']
+            "permission": []
         }
         for user in c.execute("SELECT * FROM user LIMIT ?, ?", t):
             logging.info(tuple(user))
@@ -217,6 +217,16 @@ def getAllUsers():
             key = key + 1
             tmp["key"] = str(key)
             tmp["name"] = tuple(user)[1]
+            permission = '{:04b}'.format(tuple(user)[3])
+            tmp["permission"] = []
+            if permission[0] == "1":
+                tmp["permission"].append("数据集")
+            if permission[1] == "1":
+                tmp["permission"].append("模型管理")
+            if permission[2] == "1":
+                tmp["permission"].append("预测分析")
+            if permission[3] == "1":
+                tmp["permission"].append("用户管理")
             users.append(tmp.copy())
         logging.info(users)
 
