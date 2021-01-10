@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS project;
 DROP TABLE IF EXISTS dataset;
 DROP TABLE IF EXISTS model;
+DROP TABLE IF EXISTS algorithm;
 
 CREATE TABLE user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,6 +34,12 @@ CREATE TABLE model (
   type INTEGER NOT NULL,
   dataset_id INTEGER NOT NULL,
   label_index INTEGER NOT NULL
+);
+
+CREATE TABLE algorithm (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  description TEXT
 );
 
 INSERT INTO user (username, password, permission) VALUES ('admin', '123', 15);

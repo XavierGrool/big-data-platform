@@ -65,19 +65,25 @@ class Dataset:
 
     # 数据处理
     def dataProcess(self):
+        # 数据初始化
         sc = get_spark().sparkContext
         separator = self.separator
         columns = self.columns
+
+        # 读取数据集文件
         lines = sc.textFile(self.hdfs_dir + self.file_obj.filename)
+
+        # 用分割符对行进行分割
         splits = lines.map(lambda x: x.split(separator))
+
+        # 数据类型转换
         transformed = splits.map(lambda x: typeTransform(x, columns))
-        print(transformed.collect())
         
+        # 创建 dataframe
         col_name = []
         for column in columns:
             col_name.append(column["col_name"])
         logging.info(col_name)
-
         df = get_spark().createDataFrame(transformed, col_name)
 
         # 这里改命名 parquet 文件的规则
@@ -108,7 +114,10 @@ def info():
         request.files['file']
     )
 
-    # ds.logging()
+    # logging
+    ds.logging()
+
+    # 
     ds.saveFileToLocal()
     ds.uploadToHadoop()
     ds.deleteLocalFile()

@@ -14,6 +14,9 @@ from pyspark.ml.classification import RandomForestClassificationModel
 from pyspark.ml.classification import GBTClassificationModel
 from pyspark.ml.classification import NaiveBayesModel
 from pyspark.ml.classification import LinearSVCModel
+from pyspark.ml.regression import LinearRegressionModel
+from pyspark.ml.regression import RandomForestRegressionModel
+from pyspark.ml.regression import GBTRegressionModel
 
 
 import logging
@@ -286,35 +289,44 @@ def predict():
         model = NaiveBayesModel.load(model_path)
     elif classifier_type == 6: # Linear Support Vector Machine
         model = LinearSVCModel.load(model_path)
+    elif classifier_type == 7: # Linear Regression
+        model = LinearRegressionModel.load(model_path)
+    elif classifier_type == 8: # Random Forest Regression
+        model = RandomForestRegressionModel.load(model_path)
+    elif classifier_type == 9: # Gradient-boosted Tree Regression
+        model = GBTRegressionModel.load(model_path)
 
     # 预测
     prediction = model.transform(df)
 
-    ###################################
-    # 把 index 过的结果还原为原本的样子 #
-    ###################################
+    ############################################
+    # 把分类问题中 index 过的结果还原为原本的样子 #
+    ############################################
 
-    # 获取 train_df
-    train_df = getDF(train_dataset)
+    classify_type = [1, 2, 3, 4, 5 ,6]
+    if classifier_type in classify_type:
 
-    # 获取 label 的列名
-    label_col_name = train_df.dtypes[label_index][0]
+        # 获取 train_df
+        train_df = getDF(train_dataset)
 
-    # 先用 StringIndexer 处理一下 label 列
-    train_df = train_df.withColumnRenamed(label_col_name, label_col_name + "_old")
-    indexer = StringIndexer(inputCol = label_col_name + "_old", outputCol = label_col_name)
-    train_df = indexer.fit(train_df).transform(train_df)
+        # 获取 label 的列名
+        label_col_name = train_df.dtypes[label_index][0]
 
-    # 获取 metadata
-    label_metadata = train_df.schema[label_col_name].metadata["ml_attr"]["vals"]
+        # 先用 StringIndexer 处理一下 label 列
+        train_df = train_df.withColumnRenamed(label_col_name, label_col_name + "_old")
+        indexer = StringIndexer(inputCol = label_col_name + "_old", outputCol = label_col_name)
+        train_df = indexer.fit(train_df).transform(train_df)
 
-    # 把现在 prediction 中的预测结果转换回去
-    prediction = prediction.withColumnRenamed("prediction", "prediction_old")
-    converter = IndexToString(
-        inputCol = "prediction_old",
-        outputCol = "prediction"
-    ).setLabels(label_metadata)
-    prediction = converter.transform(prediction)
+        # 获取 metadata
+        label_metadata = train_df.schema[label_col_name].metadata["ml_attr"]["vals"]
+
+        # 把现在 prediction 中的预测结果转换回去
+        prediction = prediction.withColumnRenamed("prediction", "prediction_old")
+        converter = IndexToString(
+            inputCol = "prediction_old",
+            outputCol = "prediction"
+        ).setLabels(label_metadata)
+        prediction = converter.transform(prediction)
 
     ###################
     # 整理要返回的数据 #
