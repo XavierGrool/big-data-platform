@@ -2,10 +2,10 @@
 <a-layout style="padding: 0 24px 24px">
     <a-spin :spinning="spinning" tip="加载中...">
     <a-breadcrumb style="margin: 16px 0">
-        <a-breadcrumb-item>Workspace</a-breadcrumb-item>
-        <a-breadcrumb-item>Projects</a-breadcrumb-item>
+        <a-breadcrumb-item>工作台</a-breadcrumb-item>
+        <a-breadcrumb-item>项目空间</a-breadcrumb-item>
         <a-breadcrumb-item>{{ project_name }}</a-breadcrumb-item>
-        <a-breadcrumb-item>Prediction</a-breadcrumb-item>
+        <a-breadcrumb-item>预测分析</a-breadcrumb-item>
     </a-breadcrumb>
     <a-layout-content
         :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
@@ -74,7 +74,7 @@
                     </div>
                     <div v-if="progress > 2">
                         <a-divider />
-                        <div style="font-size: 24px; margin-bottom: 24px">选择 Features</div>
+                        <div style="font-size: 24px; margin-bottom: 24px">选择特征</div>
                         <a-space direction="vertical" size="middle">
                             <a-checkbox-group
                                 v-model="checkedFeatures"
@@ -136,7 +136,7 @@ export default {
             steps: [
                 {id: 0, content: "选择模型"},
                 {id: 1, content: "选择数据集"},
-                {id: 2, content: "选择 Features"},
+                {id: 2, content: "选择特征"},
                 {id: 3, content: "预测分析"},
                 {id: 4, content: "结果展示"},
             ],
