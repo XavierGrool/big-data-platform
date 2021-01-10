@@ -124,8 +124,32 @@
                 </a-popconfirm>
             </span>
         </a-table>
+        <a-modal
+            title="数据集变更"
+            :visible="modify_dataset_modal"
+            :footer="null"
+            @cancel="closeModifyDatasetModal"
+        >
+            <a-form
+                :form="modify_dataset_form"
+                :label-col="{ span: 5 }"
+                :wrapper-col="{ span: 12 }"
+                @submit="submitModification"
+            >
+                <a-form-item label="数据集名称">
+                    <a-input :value="tmp_name" />
+                </a-form-item>
+                <a-form-item label="数据集描述">
+                    <a-textarea :value="tmp_description" :rows="4" />
+                </a-form-item>
+                <a-form-item :wrapper-col="{ span: 12, offset: 5 }">
+                    <a-button type="primary" html-type="submit">
+                        提交
+                    </a-button>
+                </a-form-item>
+            </a-form>
+        </a-modal>
     </a-layout-content>
-    
 </a-layout>
 </template>
 
@@ -186,7 +210,11 @@ export default {
             },
             formItemLayoutWithOutLabel: { wrapperCol: { span: 14, offset: 5 } },
             spinning: false,
-            table_loading: false
+            table_loading: false,
+            modify_dataset_modal: false,
+            modify_dataset_form: this.$form.createForm(this, { name: 'modify_dataset' }),
+            tmp_name: "",
+            tmp_description: "",
         }
     },
     created() {
@@ -339,10 +367,9 @@ export default {
             console.log("修改数据集");
             console.log(this.data[Number(key) - 1].name);
             console.log(this.data[Number(key) - 1].description);
-            // TODO
-            // this.tmp_name = this.data[Number(key) - 1].name;
-            // this.tmp_description = this.data[Number(key) - 1].description;
-            // this.modify_project_modal = true;
+            this.tmp_name = this.data[Number(key) - 1].name;
+            this.tmp_description = this.data[Number(key) - 1].description;
+            this.modify_dataset_modal = true;
         },
 
         // 删除一个数据集
@@ -365,6 +392,22 @@ export default {
             //         this.$message.error('非法状态！');
             //     }
             // })
+        },
+
+        // 关闭修改数据集对话框
+        closeModifyDatasetModal() {
+            this.modify_dataset_modal = false;
+        },
+
+        // 提交项目变更
+        submitModification(e) {
+            e.preventDefault();
+            this.modify_dataset_form.validateFields((err, values) => {
+                if (!err) {
+                    console.log('Received values of form: ', values);
+                    // TODO
+                }
+            })
         },
     }
 }
