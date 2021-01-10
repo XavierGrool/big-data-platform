@@ -14,8 +14,12 @@ from pyspark.ml.classification import RandomForestClassifier
 from pyspark.ml.classification import GBTClassifier
 from pyspark.ml.classification import NaiveBayes
 from pyspark.ml.classification import LinearSVC
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.regression import RandomForestRegressor
+from pyspark.ml.regression import GBTRegressor
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml.evaluation import RegressionEvaluator
 
 
 import logging
@@ -51,7 +55,7 @@ def getDF(dataset_id):
 
 
 # 数据预处理
-def dataPreProcess(df, label, features):
+def dataPreProcess(df, label, features, problem_type):
     # 把 df 中除 label 列的数据类型是字符串的各列先 StringIndexer 一下
     for i, dtype in enumerate(df.dtypes):
         if dtype[1] == "string" and i != int(label):
@@ -59,11 +63,12 @@ def dataPreProcess(df, label, features):
             indexer = StringIndexer(inputCol = dtype[0] + "_old", outputCol = dtype[0])
             df = indexer.fit(df).transform(df)
 
-    # 用 StringIndexer 对 label 列进行处理
-    label_name = df.dtypes[int(label)][0]
-    df = df.withColumnRenamed(label_name, label_name + "_old")
-    indexer = StringIndexer(inputCol = label_name + "_old", outputCol = label_name)
-    df = indexer.fit(df).transform(df)
+    # 如果是分类问题，用 StringIndexer 对 label 列进行处理
+    if problem_type != 3:
+        label_name = df.dtypes[int(label)][0]
+        df = df.withColumnRenamed(label_name, label_name + "_old")
+        indexer = StringIndexer(inputCol = label_name + "_old", outputCol = label_name)
+        df = indexer.fit(df).transform(df)
 
     # 装配 label 和 features vector
     formula_str = df.columns[-1] + "~"
@@ -146,6 +151,27 @@ def getClassifier(type, params):
             fitIntercept = lsvc_fit_intercept,
             standardization = lsvc_standardization,
             aggregationDepth = lsvc_aggregation_depth
+        )
+    elif type == 7: # Linear Regression
+        l_rgs_max_iter = int(params["l_rgs_max_iter"])
+        l_rgs_reg_param = float(params["l_rgs_reg_param"])
+        cf = LinearRegression(
+            maxIter = l_rgs_max_iter,
+            regParam = l_rgs_reg_param,
+        )
+    elif type == 8: # Random Forest Regression
+        rf_rgs_max_depth = int(params["rf_rgs_max_depth"])
+        rf_rgs_num_trees = int(params["rf_rgs_num_trees"])
+        cf = RandomForestRegressor(
+            maxDepth = rf_rgs_max_depth,
+            numTrees = rf_rgs_num_trees
+        )
+    elif type == 9: # Gradient-boosted Tree Regression
+        gbt_rgs_max_depth = int(params["gbt_rgs_max_depth"])
+        gbt_rgs_max_iter = int(params["gbt_rgs_max_iter"])
+        cf = GBTRegressor(
+            maxDepth = gbt_rgs_max_depth,
+            maxIter = gbt_rgs_max_iter
         )
 
     return cf
@@ -265,7 +291,7 @@ def train():
     df = getDF(dataset_id)
 
     # 数据预处理
-    df = dataPreProcess(df, label, features)
+    df = dataPreProcess(df, label, features, problem_type)
 
     # 划分训练集和测试集
     (trainingData, testData) = df.randomSplit([0.7, 0.3])
@@ -311,6 +337,22 @@ def train():
         )
         results["train_f1"] = evaluator.evaluate(predict_train)
         results["test_f1"] = evaluator.evaluate(predict_test)
+    elif problem_type == 3: # 回归问题
+        evaluator = RegressionEvaluator( # 计算 rmse
+            labelCol = "label",
+            predictionCol = "prediction",
+            metricName = 'rmse'
+        )
+        results["train_rmse"] = evaluator.evaluate(predict_train)
+        results["test_rmse"] = evaluator.evaluate(predict_test)
+
+        evaluator = RegressionEvaluator( # 计算 mae
+            labelCol = "label",
+            predictionCol = "prediction",
+            metricName = 'mae'
+        )
+        results["train_mae"] = evaluator.evaluate(predict_train)
+        results["test_mae"] = evaluator.evaluate(predict_test)
 
     status = 1
 
@@ -349,7 +391,7 @@ def save():
     df = getDF(dataset_id)
 
     # 数据预处理
-    df = dataPreProcess(df, label, features)
+    df = dataPreProcess(df, label, features, problem_type)
 
     # 训练
     cf = getClassifier(classifier, classifier_params)
