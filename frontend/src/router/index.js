@@ -12,6 +12,7 @@ import Model from '../components/Model.vue'
 import Prediction from '../components/Prediction.vue'
 import InspectData from '../components/InspectData.vue'
 import AddModel from '../components/AddModel.vue'
+import Algorithm from '../components/Algorithm.vue'
 // import Test from '../views/Test.vue'
 
 Vue.use(VueRouter)
@@ -32,6 +33,10 @@ const routes = [
           {
             path: 'projects',
             component: Projects
+          },
+          {
+            path: 'algorithm',
+            component: Algorithm
           },
           {
             path: 'users',

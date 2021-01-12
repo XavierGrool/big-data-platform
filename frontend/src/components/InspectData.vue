@@ -9,10 +9,10 @@
     </a-layout-sider>
     <a-layout style="padding: 0 24px 24px">
         <a-breadcrumb style="margin: 16px 0">
-            <a-breadcrumb-item>Workspace</a-breadcrumb-item>
-            <a-breadcrumb-item>Projects</a-breadcrumb-item>
+            <a-breadcrumb-item>工作台</a-breadcrumb-item>
+            <a-breadcrumb-item>项目空间</a-breadcrumb-item>
             <a-breadcrumb-item>{{ project_name }}</a-breadcrumb-item>
-            <a-breadcrumb-item>Dataset</a-breadcrumb-item>
+            <a-breadcrumb-item>数据集</a-breadcrumb-item>
             <a-breadcrumb-item>{{ dataset_name }}</a-breadcrumb-item>
         </a-breadcrumb>
         <a-layout-content

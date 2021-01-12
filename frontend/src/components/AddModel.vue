@@ -10,11 +10,11 @@
     <a-layout style="padding: 0 24px 24px">
         <a-spin :spinning="spinning" tip="加载中...">
         <a-breadcrumb style="margin: 16px 0">
-            <a-breadcrumb-item>Workspace</a-breadcrumb-item>
-            <a-breadcrumb-item>Projects</a-breadcrumb-item>
+            <a-breadcrumb-item>工作台</a-breadcrumb-item>
+            <a-breadcrumb-item>项目空间</a-breadcrumb-item>
             <a-breadcrumb-item>{{ project_name }}</a-breadcrumb-item>
-            <a-breadcrumb-item>Model</a-breadcrumb-item>
-            <a-breadcrumb-item>Add</a-breadcrumb-item>
+            <a-breadcrumb-item>模型管理</a-breadcrumb-item>
+            <a-breadcrumb-item>添加模型</a-breadcrumb-item>
         </a-breadcrumb>
         <a-layout-content
             :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
@@ -53,7 +53,7 @@
                         </div>
                         <div v-if="progress > 1">
                             <a-divider />
-                            <div style="font-size: 24px; margin-bottom: 16px">选择 Label</div>
+                            <div style="font-size: 24px; margin-bottom: 16px">选择标签</div>
                             <a-radio-group
                                 v-model="checkedLabel"
                                 @change="onLabelSelectedChange"
@@ -69,7 +69,7 @@
                         </div>
                         <div v-if="progress > 2">
                             <a-divider />
-                            <div style="font-size: 24px; margin-bottom: 24px">选择 Features</div>
+                            <div style="font-size: 24px; margin-bottom: 24px">选择特征</div>
                             <a-space direction="vertical" size="middle">
                                 <a-checkbox-group
                                     v-model="checkedFeatures"
@@ -93,6 +93,7 @@
                             >
                                 <a-radio :value=1>二分类问题</a-radio>
                                 <a-radio :value=2>多分类问题</a-radio>
+                                <a-radio :value=3>回归问题</a-radio>
                             </a-radio-group>
                         </div>
                         <div v-if="progress > 4">
@@ -306,6 +307,48 @@
                                 >
                                     <a-input v-model="model_config_form.lsvc_aggregation_depth" />
                                 </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxIter"
+                                    prop="l_rgs_max_iter"
+                                    v-if="selected_classifier_id == 7"
+                                >
+                                    <a-input v-model="model_config_form.l_rgs_max_iter" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="regParam"
+                                    prop="l_rgs_reg_param"
+                                    v-if="selected_classifier_id == 7"
+                                >
+                                    <a-input v-model="model_config_form.l_rgs_reg_param" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxDepth"
+                                    prop="rf_rgs_max_depth"
+                                    v-if="selected_classifier_id == 8"
+                                >
+                                    <a-input v-model="model_config_form.rf_rgs_max_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="numtrees"
+                                    prop="rf_rgs_num_trees"
+                                    v-if="selected_classifier_id == 8"
+                                >
+                                    <a-input v-model="model_config_form.rf_rgs_num_trees" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxDepth"
+                                    prop="gbt_rgs_max_depth"
+                                    v-if="selected_classifier_id == 9"
+                                >
+                                    <a-input v-model="model_config_form.gbt_rgs_max_depth" />
+                                </a-form-model-item>
+                                <a-form-model-item
+                                    label="maxIter"
+                                    prop="gbt_rgs_max_iter"
+                                    v-if="selected_classifier_id == 9"
+                                >
+                                    <a-input v-model="model_config_form.gbt_rgs_max_iter" />
+                                </a-form-model-item>
                                 <a-form-model-item v-if="selected_classifier_id > 0">
                                     <a-button type="primary" @click="trainAModel">
                                         开始训练
@@ -392,6 +435,43 @@
                                         suffix="%"
                                         :precision="5"
                                         :value="train_results.test_f1 * 100" 
+                                    />
+                                    </a-space>
+                                </div>
+                            </a-card>
+                            <a-card
+                                style="width:50%"
+                                title="训练结果"
+                                v-if="checkedProblemType == 3"
+                                :tab-list="tabList[2]"
+                                :active-tab-key="key"
+                                @tabChange="key => onTabChange(key, 'key')"
+                            >
+                                <div v-if="key == 'tab1'">
+                                    <a-space size="large">
+                                    <a-statistic
+                                        title="训练集"
+                                        :precision="5"
+                                        :value="train_results.train_rmse"
+                                    />
+                                    <a-statistic
+                                        title="测试集"
+                                        :precision="5"
+                                        :value="train_results.test_rmse" 
+                                    />
+                                    </a-space>
+                                </div>
+                                <div v-if="key == 'tab2'">
+                                    <a-space size="large">
+                                    <a-statistic
+                                        title="训练集"
+                                        :precision="5"
+                                        :value="train_results.train_mae"
+                                    />
+                                    <a-statistic
+                                        title="测试集"
+                                        :precision="5"
+                                        :value="train_results.test_mae" 
                                     />
                                     </a-space>
                                 </div>
@@ -486,6 +566,21 @@ const multi_class_classifiers = [
         name: 'Naive Bayes',
     },
 ];
+
+const regression = [
+    {
+        id: 7,
+        name: 'Linear Regression',
+    },
+    {
+        id: 8,
+        name: 'Random Forest Regression',
+    },
+    {
+        id: 9,
+        name: 'Gradient-boosted Tree Regression',
+    },
+]
 
 export default {
     name: "AddModel",
@@ -700,6 +795,90 @@ export default {
                 }
             }
         };
+        let checkLRgsMaxIter = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxIter 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxIter 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxIter 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkLRgsRegParam = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('regParam 不得为空!'));
+            }
+            if (Number.isNaN(Number(value))) {
+                callback(new Error('regParam 不得为字符串！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('regParam 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkRFRgsMaxDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxDepth 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkRFRgsNumTrees = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('numtrees 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('numtrees 必须为整形！'));
+            } else {
+                if (Number(value) < 1) {
+                    callback(new Error('numtrees 的值必须大于等于 1'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkGBTRgsMaxDepth = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxDepth 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxDepth 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxDepth 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
+        let checkGBTRgsMaxIter = (rule, value, callback) => {
+            if (!value) {
+                return callback(new Error('maxIter 不得为空!'));
+            }
+            if (!Number.isInteger(Number(value))) {
+                callback(new Error('maxIter 必须为整形！'));
+            } else {
+                if (Number(value) < 0) {
+                    callback(new Error('maxIter 的值必须大于等于 0'));
+                } else {
+                    callback();
+                }
+            }
+        };
         return {
             spinning: false,
             progress: 1,
@@ -714,8 +893,8 @@ export default {
             selected_dataset_id: 0,
             steps: [
                 {id: 0, content: "选择数据集"},
-                {id: 1, content: "选择 Label"},
-                {id: 2, content: "选择 Features"},
+                {id: 1, content: "选择标签"},
+                {id: 2, content: "选择特征"},
                 {id: 3, content: "确定问题分类"},
                 {id: 4, content: "配置模型"},
                 {id: 5, content: "模型训练"},
@@ -750,6 +929,12 @@ export default {
                 lsvc_aggregation_depth: "2",
                 nb_smoothing: "1.0",
                 nb_model_type: "multinomial",
+                l_rgs_max_iter: "100",
+                l_rgs_reg_param: "0.0",
+                rf_rgs_max_depth: "5",
+                rf_rgs_num_trees: "20",
+                gbt_rgs_max_depth: "5",
+                gbt_rgs_max_iter: "20",
             },
             model_config_rules: {
                 lr_aggregation_depth: [{ validator: checkLRAggregationDepth, trigger: 'blur' }],
@@ -767,6 +952,12 @@ export default {
                 lsvc_max_iter: [{ validator: checkLSVCMaxIter, trigger: 'blur' }],
                 lsvc_reg_param: [{ validator: checkLSVCRegParam, trigger: 'blur' }],
                 lsvc_aggregation_depth: [{ validator: checkLSVCAggregationDepth, trigger: 'blur' }],
+                l_rgs_max_iter: [{ validator: checkLRgsMaxIter, trigger: 'blur' }],
+                l_rgs_reg_param: [{ validator: checkLRgsRegParam, trigger: 'blur' }],
+                rf_rgs_max_depth: [{ validator: checkRFRgsMaxDepth, trigger: 'blur' }],
+                rf_rgs_num_trees: [{ validator: checkRFRgsNumTrees, trigger: 'blur' }],
+                gbt_rgs_max_depth: [{ validator: checkGBTRgsMaxDepth, trigger: 'blur' }],
+                gbt_rgs_max_iter: [{ validator: checkGBTRgsMaxIter, trigger: 'blur' }],
             },
             train_results: {
                 train_roc: 0,
@@ -776,11 +967,16 @@ export default {
                 train_acc: 0,
                 test_acc: 0,
                 train_f1: 0,
-                test_f1: 0
+                test_f1: 0,
+                train_rmse: 0,
+                test_rmse: 0,
+                train_mae: 0,
+                test_mae: 0
             },
             tabList: [
                 [{key: "tab1", tab: 'ROC'}, {key: "tab2", tab: 'PR'}],
-                [{key: "tab1", tab: 'ACC'}, {key: "tab2", tab: 'F1'}]
+                [{key: "tab1", tab: 'ACC'}, {key: "tab2", tab: 'F1'}],
+                [{key: "tab1", tab: 'RMSE'}, {key: "tab2", tab: 'MAE'}]
             ],
             key: "tab1",
         }
@@ -882,6 +1078,9 @@ export default {
             } else if (this.checkedProblemType == 2) {
                 this.classifiers = multi_class_classifiers;
                 this.selected_classifier_id = 3;
+            } else if (this.checkedProblemType == 3) {
+                this.classifiers = regression;
+                this.selected_classifier_id = 8;
             }
             this.progress = 5;
         },
@@ -945,6 +1144,11 @@ export default {
                     this.train_results.test_acc = response.data.results.test_acc;
                     this.train_results.train_f1 = response.data.results.train_f1;
                     this.train_results.test_f1 = response.data.results.test_f1;
+                } else if (this.checkedProblemType == 3) { // 回归问题
+                    this.train_results.train_rmse = response.data.results.train_rmse;
+                    this.train_results.test_rmse = response.data.results.test_rmse;
+                    this.train_results.train_mae = response.data.results.train_mae;
+                    this.train_results.test_mae = response.data.results.test_mae;
                 }
                 this.spinning = false;
                 this.progress = 7;

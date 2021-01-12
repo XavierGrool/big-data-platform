@@ -3,21 +3,24 @@
     <a-layout-sider width="200" style="background: #fff">
     <a-menu
         mode="inline"
-        :default-selected-keys="['2']"
+        :default-selected-keys="['3']"
         :style="{ height: '100%', borderRight: 0 }"
     >
         <a-menu-item key="1" @click="clickProjects">
             <a-icon type="project" />项目空间
         </a-menu-item>
-        <a-menu-item key="2" @click="clickUsers">
+        <a-menu-item key="2" @click="clickAlgorithm">
+            <a-icon type="bulb" />算法管理
+        </a-menu-item>
+        <a-menu-item key="3" @click="clickUsers">
             <a-icon type="user" />用户管理
         </a-menu-item>
     </a-menu>
     </a-layout-sider>
     <a-layout style="padding: 0 24px 24px">
     <a-breadcrumb style="margin: 16px 0">
-        <a-breadcrumb-item>Workspace</a-breadcrumb-item>
-        <a-breadcrumb-item>User Manage</a-breadcrumb-item>
+        <a-breadcrumb-item>工作台</a-breadcrumb-item>
+        <a-breadcrumb-item>用户管理</a-breadcrumb-item>
     </a-breadcrumb>
     <a-layout-content
         :style="{ background: '#fff', padding: '24px', margin: 0, minHeight: '280px' }"
@@ -222,6 +225,12 @@ export default {
         clickProjects(e) {
             console.log(e);
             this.$router.push("/dashboard/workspace/projects")
+        },
+
+        // 点击算法管理
+        clickAlgorithm(e) {
+            console.log(e);
+            this.$router.push("/dashboard/workspace/algorithm")
         },
 
         // 点击用户管理（其实没什么用
