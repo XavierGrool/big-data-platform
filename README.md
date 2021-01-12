@@ -10,7 +10,13 @@ docker
 本项目的 docker-compose 基本框架来源于 https://github.com/big-data-europe/docker-hadoop ，受 pr59 启发最终得到了现有版本。另外还有一些因项目需要而进行的更改。
 
 ### 1.3 部署方式
-把项目拉取到本地后，请务必保证项目路径没有中文字符，并修改 `namenode` 服务及 `my-spark` 服务中 `volumes` 的地址。为了方便起见，这里我在项目根目录建立了一个 `share` 文件夹用于容器与 win10 的共享文件夹。第一次启动前，首先启动一次 Hadoop 集群，把 `/etc/hadoop` 中的所有配置文件复制出来到 `share` 文件夹里（比如 /share/hadoop），之后的每次就可以在 `my-spark` 服务中把 `/share/hadoop` 挂载到 `/etc/hadoop` 中，以确保 `pyspark` 能连接到 yarn 集群。
+1. 拉取项目
+2. 修改 docker-compose.yml 中的三个相对地址（请务必保证路径没有中文字符
+3. 在项目根目录输入: docker-compose up -d
+4. 进入 backend 终端，然后进入 /root/app 文件夹，先后执行: flask init-db 和 flask run --host=0.0.0.0
+5. 进入 frontend 终端，然后进入 /root/app 文件夹，先后执行: yarn install 和 yarn serve
+6. 在电脑浏览器访问: http://localhost:8080
+7. 初始账户: admin, 初始密码: 123
 
 ### 1.4 启动命令
 ```

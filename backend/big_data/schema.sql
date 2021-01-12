@@ -61,9 +61,8 @@ INSERT INTO user (username, password, permission) VALUES ('Scott', '123', 12);
 INSERT INTO user (username, password, permission) VALUES ('Kris', '123', 4);
 INSERT INTO user (username, password, permission) VALUES ('Peter', '123', 6);
 
-INSERT INTO project (username, name, description) VALUES ('admin', '演示项目1', "多分类问题（txt 文件导入");
-INSERT INTO project (username, name, description) VALUES ('admin', '演示项目2', "二分类问题（csv 文件导入");
-INSERT INTO project (username, name, description) VALUES ('admin', '演示项目3', "大数据集");
+INSERT INTO project (username, name, description) VALUES ('admin', '演示项目1', "分类问题");
+INSERT INTO project (username, name, description) VALUES ('admin', '演示项目2', "回归问题");
 INSERT INTO project (username, name, description) VALUES ('admin', '我的项目1', "");
 INSERT INTO project (username, name, description) VALUES ('admin', '我的项目2', "");
 INSERT INTO project (username, name, description) VALUES ('admin', '我的项目3', "测试用");
